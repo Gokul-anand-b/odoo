@@ -1,0 +1,16 @@
+# Python & Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.sqlite3
+media/
+staticfiles/
+.env
+local_settings.py
+*.log
+.DS_Store
