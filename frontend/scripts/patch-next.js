@@ -24,3 +24,4 @@ if (fs.existsSync(target)) {
     console.log('[Eternelle] Applied Windows OneDrive reparse-point patch to Next.js recursive-delete.');
   }
 }
+
