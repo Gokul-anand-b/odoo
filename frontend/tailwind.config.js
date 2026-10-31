@@ -48,7 +48,8 @@ module.exports = {
       },
       fontFamily: {
         serif: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
-        sans: ['var(--font-outfit)', 'Outfit', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        crest: ['Cinzel', 'serif'],
       },
       boxShadow: {
         'gold-glow': '0 0 30px -5px rgba(215, 186, 120, 0.35)',
