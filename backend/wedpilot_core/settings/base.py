@@ -22,7 +22,10 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # Feature Apps
+    'common',
     'vendor_intelligence',
+    'wedding_blueprint',
+    'command_centre',
 ]
 
 MIDDLEWARE = [

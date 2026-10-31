@@ -36,14 +36,14 @@ export const navigationItems: NavItem[] = [
     id: 'vendor-intelligence',
     label: 'Vendor Intelligence',
     icon: Brain,
-    href: '#',
+    href: '/vendor-intelligence',
     badge: 'AI',
   },
   {
     id: 'command-centre',
     label: 'Wedding Command Centre',
     icon: Radio,
-    href: '#',
+    href: '/command-centre',
   },
   {
     id: 'disruption-recovery',
