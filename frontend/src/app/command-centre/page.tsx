@@ -3,7 +3,7 @@
 import Sidebar from '@/components/layout/Sidebar';
 import TopNav from '@/components/layout/TopNav';
 import Footer from '@/components/layout/Footer';
-import CommandCenterDashboard from '../../../command-center/CommandCenterDashboard';
+import CommandCenterDashboard from '@/features/command-centre/CommandCenterDashboard';
 
 export default function CommandCentrePage() {
   return (

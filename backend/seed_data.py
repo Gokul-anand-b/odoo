@@ -2,7 +2,7 @@ import os
 import django
 from decimal import Decimal
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wedpilot_core.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'demo_config.settings')
 django.setup()
 
 from vendor_intelligence.models import (
