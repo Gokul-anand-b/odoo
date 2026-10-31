@@ -43,7 +43,6 @@ def api_root(request):
         'modules': {
             'weddings': 'Coming soon',
             'vendors': 'Coming soon',
-            'command_centre': 'Coming soon',
             'disruptions': 'Coming soon',
             'finance': 'Coming soon',
         }

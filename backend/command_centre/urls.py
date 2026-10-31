@@ -1,24 +1,19 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
+
 from .views import (
-    DashboardOverviewViewSet,
-    WeddingEventViewSet,
-    TaskItemViewSet,
-    VendorTrackingViewSet,
-    DelayDetectionViewSet,
-    DependencyImpactViewSet,
-    AlertItemViewSet,
+    CommandCentreDashboardAPIView,
+    CommandCentreEventDetailAPIView,
+    CommandCentreTaskDetailAPIView,
+    CommandCentreVendorAPIView,
+    CommandCentreVendorDetailAPIView,
 )
 
-router = DefaultRouter()
-router.register(r'overview', DashboardOverviewViewSet, basename='cc-overview')
-router.register(r'events', WeddingEventViewSet, basename='cc-event')
-router.register(r'tasks', TaskItemViewSet, basename='cc-task')
-router.register(r'vendors', VendorTrackingViewSet, basename='cc-vendor')
-router.register(r'delays', DelayDetectionViewSet, basename='cc-delay')
-router.register(r'dependencies', DependencyImpactViewSet, basename='cc-dependency')
-router.register(r'alerts', AlertItemViewSet, basename='cc-alert')
+app_name = 'command_centre'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('weddings/<uuid:wedding_id>/dashboard/', CommandCentreDashboardAPIView.as_view(), name='dashboard'),
+    path('weddings/<uuid:wedding_id>/events/<uuid:event_id>/', CommandCentreEventDetailAPIView.as_view(), name='event-update'),
+    path('weddings/<uuid:wedding_id>/tasks/<uuid:task_id>/', CommandCentreTaskDetailAPIView.as_view(), name='task-update'),
+    path('weddings/<uuid:wedding_id>/vendors/', CommandCentreVendorAPIView.as_view(), name='vendor-list-create'),
+    path('weddings/<uuid:wedding_id>/vendors/<int:assignment_id>/', CommandCentreVendorDetailAPIView.as_view(), name='vendor-update'),
 ]
