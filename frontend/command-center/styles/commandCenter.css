@@ -1,0 +1,146 @@
+/* ====================================================================
+   WedPilot AI - Wedding Command Centre Styles
+   Aesthetic: Luxury Wedding Management with Clean White & Warm Gold Accents
+   ==================================================================== */
+
+:root {
+  --cc-bg: #FCFBF9;
+  --cc-card-bg: #FFFFFF;
+  --cc-gold: #B99A65;
+  --cc-gold-light: #E8D4B0;
+  --cc-gold-dark: #9A7E50;
+  --cc-gold-subtle: rgba(185, 154, 101, 0.08);
+  --cc-gold-border: rgba(185, 154, 101, 0.22);
+  --cc-text-primary: #2A1E26;
+  --cc-text-secondary: #6B5E68;
+  --cc-text-muted: #8E828B;
+  --cc-plum-dark: #3A2335;
+  --cc-success: #2E8555;
+  --cc-success-bg: rgba(46, 133, 85, 0.09);
+  --cc-warning: #D97706;
+  --cc-warning-bg: rgba(217, 119, 6, 0.09);
+  --cc-critical: #DC2626;
+  --cc-critical-bg: rgba(220, 38, 38, 0.09);
+  --cc-info: #3B82F6;
+  --cc-info-bg: rgba(59, 130, 246, 0.09);
+}
+
+.command-center-container {
+  background-color: var(--cc-bg);
+  min-height: 100vh;
+  color: var(--cc-text-primary);
+  font-family: inherit;
+}
+
+/* Glass & Card Styling */
+.cc-card {
+  background: var(--cc-card-bg);
+  border: 1px solid var(--cc-gold-border);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px -2px rgba(73, 48, 68, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease-in-out;
+}
+
+.cc-card:hover {
+  box-shadow: 0 8px 30px -4px rgba(185, 154, 101, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
+  border-color: rgba(185, 154, 101, 0.38);
+}
+
+.cc-card-header {
+  border-bottom: 1px solid rgba(185, 154, 101, 0.14);
+}
+
+/* Gold Gradient Accents */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #B99A65 0%, #D4BA8A 50%, #9A7E50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-btn {
+  background: linear-gradient(135deg, #D4BA8A 0%, #B99A65 100%);
+  color: #2E1F2A;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(185, 154, 101, 0.28);
+  transition: all 0.2s ease;
+}
+
+.gold-gradient-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(185, 154, 101, 0.4);
+}
+
+.gold-subtle-badge {
+  background: var(--cc-gold-subtle);
+  border: 1px solid var(--cc-gold-border);
+  color: var(--cc-gold-dark);
+}
+
+/* Pulse Radar Indicator */
+.live-pulse-dot {
+  position: relative;
+  display: inline-flex;
+}
+
+.live-pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: #22C55E;
+  opacity: 0.75;
+  animation: radar-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes radar-ping {
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Custom Scrollbars */
+.cc-custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.cc-custom-scroll::-webkit-scrollbar-track {
+  background: rgba(185, 154, 101, 0.05);
+  border-radius: 4px;
+}
+
+.cc-custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(185, 154, 101, 0.25);
+  border-radius: 4px;
+}
+
+.cc-custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(185, 154, 101, 0.45);
+}
+
+/* Progress bar shimmer */
+.cc-progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.cc-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 2.4s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'common',
     'vendor_intelligence',
     'wedding_blueprint',
+    'command_centre',
 ]
 
 MIDDLEWARE = [
