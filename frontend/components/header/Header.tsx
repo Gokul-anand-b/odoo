@@ -13,10 +13,9 @@ import {
 
 interface HeaderProps {
   onSearchChange?: (val: string) => void;
-  onOpenSqlModal?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onSearchChange, onOpenSqlModal }) => {
+export const Header: React.FC<HeaderProps> = ({ onSearchChange }) => {
   return (
     <header className="h-16 border-b border-gold-400/20 bg-wedding-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
       {/* Search Bar */}
@@ -54,17 +53,8 @@ export const Header: React.FC<HeaderProps> = ({ onSearchChange, onOpenSqlModal }
         </div>
       </div>
 
-      {/* Right Controls: Supabase SQL Helper & Profile */}
+      {/* Right Controls: Notifications & Profile */}
       <div className="flex items-center gap-3">
-        {onOpenSqlModal && (
-          <button
-            onClick={onOpenSqlModal}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gold-500/15 border border-gold-400/40 text-gold-300 text-xs font-semibold hover:bg-gold-500/25 transition"
-          >
-            <Database className="w-3.5 h-3.5 text-gold-400" />
-            Supabase Schema SQL
-          </button>
-        )}
 
         <button className="p-2 rounded-xl bg-wedding-900 border border-gold-400/25 text-gold-400 hover:text-gold-300 hover:bg-wedding-850 transition relative">
           <Bell className="w-4 h-4" />

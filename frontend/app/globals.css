@@ -1,81 +1,110 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&family=Cinzel:wght@600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-wedding-950: #0F0B08;
-  --color-wedding-900: #17110C;
-  --color-wedding-850: #201811;
-  --color-gold-400: #D7BA78;
-  --color-gold-500: #C59B51;
-  --color-cream-100: #FAF6EE;
-  --color-vermillion-500: #C84B31;
+  --color-wedding-bg: #140E0A;
+  --color-wedding-card: #1D150E;
+  --color-wedding-border: rgba(215, 186, 120, 0.35);
+  --color-gold-radiant: #E5C378;
+  --color-gold-primary: #C59B51;
+  --color-gold-deep: #A07830;
+  --color-cream-silk: #FCF8F0;
+  --color-amber-warm: #E29B38;
 }
 
 body {
-  background-color: #0E0A07;
-  color: #FAF6EE;
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  background-color: #120D08;
+  color: #FCF8F0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Elegant Serifs for Royal Wedding Titles */
+h1,
+h2,
+h3,
+h4,
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
   letter-spacing: -0.01em;
 }
 
-h1, h2, h3, h4, .font-serif {
-  font-family: 'Playfair Display', Georgia, serif;
-  letter-spacing: 0.01em;
+.font-crest {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.08em;
 }
 
-/* Custom Royal Champagne Scrollbars */
+/* Custom Royal Wedding Gold Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #140E0A;
+  background: #17100B;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #433227;
+  background: #4A3828;
   border-radius: 4px;
-  border: 1px solid rgba(215, 186, 120, 0.3);
+  border: 1px solid rgba(229, 195, 120, 0.4);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D7BA78;
+  background: #C59B51;
 }
 
-/* Ultra Luxury Golden Glass Cards */
+/* Ultra-Luxe Warm Royal Gold Glass Cards */
 .luxury-gold-card {
-  background: linear-gradient(165deg, rgba(35, 26, 18, 0.85) 0%, rgba(20, 15, 10, 0.95) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(215, 186, 120, 0.28);
-  box-shadow: 0 12px 40px -10px rgba(10, 7, 5, 0.85);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(165deg, rgba(35, 25, 16, 0.92) 0%, rgba(22, 16, 10, 0.96) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(229, 195, 120, 0.32);
+  box-shadow: 0 14px 44px -10px rgba(8, 5, 3, 0.88), 0 0 25px -8px rgba(197, 155, 81, 0.12);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .luxury-gold-card:hover {
-  border-color: rgba(215, 186, 120, 0.55);
-  box-shadow: 0 18px 45px -8px rgba(215, 186, 120, 0.16), 0 12px 35px rgba(10, 7, 5, 0.9);
+  border-color: rgba(229, 195, 120, 0.6);
+  box-shadow: 0 20px 50px -10px rgba(197, 155, 81, 0.22), 0 10px 30px rgba(8, 5, 3, 0.9);
 }
 
+/* Glowing Gold Trim */
 .gold-glow-border {
-  border: 1px solid #D7BA78;
-  box-shadow: 0 0 25px -4px rgba(215, 186, 120, 0.4);
+  border: 1px solid #E5C378;
+  box-shadow: 0 0 30px -4px rgba(229, 195, 120, 0.45);
+}
+
+/* Radiant Gold Gradient Button */
+.btn-gold {
+  background: linear-gradient(135deg, #F5E4BE 0%, #D4AF37 50%, #A88039 100%);
+  color: #120D08;
+  font-weight: 700;
+  box-shadow: 0 4px 20px -2px rgba(212, 175, 55, 0.4);
+  transition: all 0.25s ease;
+}
+
+.btn-gold:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 6px 26px -2px rgba(212, 175, 55, 0.55);
+  transform: translateY(-1px);
 }
 
 /* Shimmer Golden Metallic Text */
 .gold-shimmer-text {
-  background: linear-gradient(90deg, #D7BA78 0%, #FFFDF9 50%, #C59B51 100%);
+  background: linear-gradient(90deg, #E5C378 0%, #FFFDF9 50%, #C59B51 100%);
   background-size: 200% auto;
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
-  animation: goldShimmer 5s linear infinite;
+  animation: goldShimmer 6s linear infinite;
 }
 
 @keyframes goldShimmer {

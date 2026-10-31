@@ -3,19 +3,10 @@
 import React from 'react';
 import { 
   Building2, 
-  Scale, 
-  Sparkles, 
-  UploadCloud, 
-  Award, 
-  Calendar, 
-  Database,
-  Layers,
-  FileText
+  Scale
 } from 'lucide-react';
 
 interface SidebarProps {
-  activeSection: string;
-  setActiveSection: (sec: string) => void;
   onOpenRegisterModal: () => void;
   quotesCount: number;
   vendorsCount: number;
@@ -23,43 +14,11 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  activeSection,
-  setActiveSection,
   onOpenRegisterModal,
   quotesCount,
   vendorsCount,
   awardedCount,
 }) => {
-  const sections = [
-    {
-      id: 'matrix',
-      label: 'Comparison Matrix',
-      sub: 'Side-by-side bid analysis',
-      icon: Scale,
-      badge: `${quotesCount} Bids`,
-    },
-    {
-      id: 'hidden_costs',
-      label: 'Hidden Fee Auditor',
-      sub: 'True landed cost novelty',
-      icon: Sparkles,
-      badge: 'Novelty',
-      badgeColor: 'bg-gold-500/20 text-gold-300 border border-gold-400/40',
-    },
-    {
-      id: 'upload_ocr',
-      label: 'Upload Quote & OCR',
-      sub: 'PDF ingestion & parser',
-      icon: UploadCloud,
-    },
-    {
-      id: 'directory',
-      label: 'Supplier Directory',
-      sub: 'Jaipur & Udaipur partners',
-      icon: Building2,
-      badge: `${vendorsCount}`,
-    },
-  ];
 
   return (
     <aside className="w-72 bg-gradient-to-b from-wedding-950 via-wedding-900 to-wedding-950 border-r border-gold-400/20 flex flex-col justify-between h-screen sticky top-0 shrink-0 z-30 select-none">
@@ -97,70 +56,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Navigation Links */}
+        {/* Navigation Links - Single Dedicated Nav Item */}
         <div className="p-3 space-y-1.5">
-          <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-gold-400/70">
-            Vendor Intelligence
+          <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-gold-400/80">
+            Platform Navigation
           </span>
 
-          {sections.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeSection === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveSection(item.id)}
-                className={`w-full p-3 rounded-xl text-left flex items-start gap-3 transition-all relative ${
-                  isActive
-                    ? 'bg-wedding-800 border border-gold-400 shadow-gold-subtle text-cream-50'
-                    : 'text-cream-300 hover:text-cream-100 hover:bg-wedding-850/60 border border-transparent'
-                }`}
-              >
-                {isActive && (
-                  <div className="absolute left-0 top-3 bottom-3 w-1 bg-gold-400 rounded-r-full" />
-                )}
-                <div
-                  className={`p-2 rounded-lg shrink-0 ${
-                    isActive ? 'bg-gold-500 text-wedding-950 font-bold shadow' : 'bg-wedding-900 text-gold-400'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold truncate">{item.label}</span>
-                    {item.badge && (
-                      <span
-                        className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
-                          item.badgeColor || 'bg-wedding-850 text-cream-300 border border-gold-400/20'
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-cream-300/70 truncate mt-0.5">{item.sub}</p>
-                </div>
-              </button>
-            );
-          })}
+          <div
+            className="w-full p-3.5 rounded-xl text-left flex items-start gap-3 bg-wedding-800 border border-gold-400 shadow-gold-subtle text-cream-50 relative"
+          >
+            <div className="absolute left-0 top-3 bottom-3 w-1.5 bg-gold-400 rounded-r-full shadow-gold-glow" />
+            <div className="p-2 rounded-lg shrink-0 bg-gold-500 text-wedding-950 font-bold shadow">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-cream-50 leading-tight">
+                  Vendor Intelligence & Quote Comparison
+                </span>
+              </div>
+              <p className="text-[10px] text-gold-300/80 truncate mt-1">
+                Unified single-page command hub
+              </p>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-gold-500/20 text-gold-300 border border-gold-400/40">
+                  {quotesCount} Bids Active
+                </span>
+                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-wedding-850 text-cream-300 border border-gold-400/20">
+                  {vendorsCount} Suppliers
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Supabase Status & Action */}
+      {/* Operational Actions */}
       <div className="p-4 border-t border-gold-400/20 space-y-3 bg-wedding-950/80">
-        <div className="p-3 rounded-xl bg-wedding-900 border border-gold-400/25 flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-2">
-            <Database className="w-3.5 h-3.5 text-gold-400" />
-            <span className="text-cream-200">Supabase DB</span>
-          </div>
-          <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            PostgreSQL Ready
-          </span>
-        </div>
-
         <div className="flex items-center justify-between text-xs text-cream-300 px-1">
           <span>Awarded Contracts:</span>
           <span className="font-bold text-emerald-400">{awardedCount} Locked</span>
@@ -168,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onOpenRegisterModal}
-          className="w-full py-2.5 rounded-xl bg-gold-gradient text-wedding-950 font-bold text-xs shadow-gold-subtle hover:brightness-110 transition flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl btn-gold text-xs flex items-center justify-center gap-2"
         >
           <Building2 className="w-3.5 h-3.5" />
           Onboard New Supplier

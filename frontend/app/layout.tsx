@@ -16,9 +16,9 @@ export default function RootLayout({
       <body className="bg-wedding-950 text-cream-100 min-h-screen selection:bg-gold-400 selection:text-wedding-950 antialiased font-sans">
         {/* Warm Golden Royal Wedding Ambient Glow */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-32 left-1/3 w-[700px] h-[700px] bg-gold-400/10 rounded-full blur-[160px]" />
-          <div className="absolute top-1/2 -right-32 w-[600px] h-[600px] bg-gold-600/10 rounded-full blur-[180px]" />
-          <div className="absolute bottom-10 left-10 w-[500px] h-[500px] bg-vermillion-500/5 rounded-full blur-[150px]" />
+          <div className="absolute -top-32 left-1/4 w-[750px] h-[750px] bg-gold-400/15 rounded-full blur-[170px]" />
+          <div className="absolute top-1/3 -right-24 w-[650px] h-[650px] bg-gold-500/12 rounded-full blur-[180px]" />
+          <div className="absolute bottom-10 left-10 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[160px]" />
         </div>
 
         <div className="relative z-10 flex flex-col min-h-screen">

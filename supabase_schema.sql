@@ -120,3 +120,31 @@ VALUES
 ('q-202', 'Q-2026-JPR-881', 'v-102', 'Samar & Alizeh Royal Wedding', 'Nov 18-20, 2026', 'Under Review', 2280000.00, 114000.00, 3400.00, 450, 685000.00, 260000.00, 3339000.00, 68, 'Jaipur_Shahi_Rasoi_Estimate.pdf', 45000.00, 50),
 ('q-203', 'Q-2026-HG-109', 'v-103', 'Samar & Alizeh Royal Wedding', 'Nov 18-20, 2026', 'Under Review', 3100000.00, 155000.00, 4600.00, 500, 180000.00, 50000.00, 3485000.00, 88, 'Heritage_Gastronomy_Quote.pdf', 25000.00, 35)
 ON CONFLICT (id) DO NOTHING;
+
+-- Seed Line Items
+INSERT INTO public.quote_line_items (id, quotation_id, description, unit, quantity, unit_rate, total_rate, is_included)
+VALUES
+('item-1', 'q-201', 'Royal Welcome Hi-Tea & Chaat Bazaar', 'Guests', 500, 850.00, 425000.00, true),
+('item-2', 'q-201', 'Sangeet Gala Imperial Dinner (7 Course)', 'Guests', 500, 2100.00, 1050000.00, true),
+('item-3', 'q-201', 'Grand Phera Reception Silver Thali (52 Dishes)', 'Guests', 500, 4200.00, 2100000.00, true),
+('item-4', 'q-202', 'Welcome Mocktails & Evening Bites', 'Guests', 450, 650.00, 292500.00, true),
+('item-5', 'q-202', 'Grand Wedding Dinner Buffet', 'Guests', 450, 3400.00, 1530000.00, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed Hidden Cost Items (Novelty)
+INSERT INTO public.hidden_cost_items (id, quotation_id, label, amount, risk_level, reason, category)
+VALUES
+('hc-1', 'q-201', 'Heritage Royal Kitchen Logistical Surcharge', 125000.00, 'Low', 'Udaipur City Palace inner courtyard vehicle permit', 'Logistics Surcharge'),
+('hc-2', 'q-202', 'Non-Employed Bartender Corkage Surcharge', 250000.00, 'High', 'Fineprint Clause 14: ₹500/bottle uncorking fee', 'Corkage Markup'),
+('hc-3', 'q-202', 'High-Load Kitchen Generator Diesel Fuel', 185000.00, 'High', 'Contract excludes fuel consumption during 3-day gala', 'Fuel Exclusions'),
+('hc-4', 'q-202', 'Late Night Curfew Overtime (Post 11:30 PM)', 250000.00, 'High', 'Tier 2 penalty: ₹45,000/hr past curfew for staff', 'Overtime Penalties')
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed Missing Inclusions (Novelty)
+INSERT INTO public.missing_inclusions (id, quotation_id, item, industry_standard, vendor_provision, estimated_fix_cost, severity)
+VALUES
+('mi-1', 'q-202', 'Crew & Vendor Technical Meals', 'Hot buffet meals for 65 wedding crew & planners', 'Excluded from contract; billed as retail per meal', 140000.00, 'Critical'),
+('mi-2', 'q-202', 'Carved Brass Chafing Dishes & Bone China Crockery', 'Premium ornate brass chafing stations matching royal theme', 'Standard stainless steel buffet; brass upgrade billed separate', 120000.00, 'Warning'),
+('mi-3', 'q-203', 'Dedicated Ice Sculptures & Dry Ice Mixology Counter', 'Included in heritage banquets', 'Client-procured or ₹50k add-on', 50000.00, 'Notice')
+ON CONFLICT (id) DO NOTHING;
+
