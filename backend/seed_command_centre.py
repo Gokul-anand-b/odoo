@@ -6,7 +6,7 @@ Run from backend/: python seed_command_centre.py
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'demo_config.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from command_centre.models import (

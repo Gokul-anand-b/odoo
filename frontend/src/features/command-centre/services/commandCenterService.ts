@@ -8,15 +8,21 @@ import {
   AlertItem,
   RealtimeFeedUpdate,
 } from '../types/commandCenter.types';
-import {
-  INITIAL_OVERVIEW_STATS,
-  INITIAL_WEDDING_EVENTS,
-  INITIAL_TASK_ITEMS,
-  INITIAL_VENDORS_TRACKING,
-  INITIAL_DELAY_DETECTIONS,
-  INITIAL_DEPENDENCY_IMPACTS,
-  INITIAL_ALERTS,
-} from '../mock/commandCenterMockData';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Zero/Empty Initial State (No hardcoded data)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const EMPTY_OVERVIEW_STATS: DashboardOverviewStats = {
+  totalEvents: 0,
+  completedEvents: 0,
+  ongoingEvents: 0,
+  upcomingEvents: 0,
+  delayedEvents: 0,
+  activeAlertsCount: 0,
+  onTimeRatePercent: 100,
+  activeVendorsOnSite: 0,
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  API Client  (Django DRF → http://localhost:8000/api/command-centre/)
@@ -31,7 +37,10 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
-  if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => '');
+    throw new Error(`API ${res.status} (${path}): ${errorBody || res.statusText}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -50,11 +59,12 @@ function adaptEvent(raw: Record<string, unknown>): WeddingEvent {
     actualStartTime: (raw.actual_start_time as string) || undefined,
     actualEndTime: (raw.actual_end_time as string) || undefined,
     status: raw.status as WeddingEvent['status'],
-    delayMinutes: raw.delay_minutes as number,
-    guestCount: raw.guest_count as number,
-    leadCoordinator: raw.lead_coordinator as string,
-    keyVendors: (raw.key_vendors as string[]) ?? [],
+    delayMinutes: Number(raw.delay_minutes ?? 0),
+    guestCount: Number(raw.guest_count ?? 0),
+    leadCoordinator: (raw.lead_coordinator as string) ?? '',
+    keyVendors: Array.isArray(raw.key_vendors) ? (raw.key_vendors as string[]) : [],
     notes: (raw.notes as string) || undefined,
+    weddingName: (raw.wedding_name as string) || undefined,
   };
 }
 
@@ -65,15 +75,17 @@ function adaptTask(raw: Record<string, unknown>): TaskItem {
     eventName: (raw.event_name as string) ?? '',
     title: raw.title as string,
     category: raw.category as TaskItem['category'],
-    assignedTo: raw.assigned_to as string,
+    assignedTo: (raw.assigned_to as string) ?? '',
     assignedRole: (raw.assigned_role as string) ?? '',
     scheduledStart: raw.scheduled_start as string,
     scheduledEnd: raw.scheduled_end as string,
-    progressPercent: raw.progress_percent as number,
+    progressPercent: Number(raw.progress_percent ?? 0),
     status: raw.status as TaskItem['status'],
     priority: raw.priority as TaskItem['priority'],
-    delayMinutes: raw.delay_minutes as number,
-    dependentTaskIds: (raw.dependent_task_ids as string[]) ?? [],
+    delayMinutes: Number(raw.delay_minutes ?? 0),
+    dependentTaskIds: Array.isArray(raw.dependent_task_ids)
+      ? (raw.dependent_task_ids as string[])
+      : [],
   };
 }
 
@@ -81,8 +93,8 @@ function adaptVendor(raw: Record<string, unknown>): VendorTrackingItem {
   return {
     id: raw.id as string,
     vendorName: raw.vendor_name as string,
-    serviceCategory: raw.service_category as string,
-    contactPerson: raw.contact_person as string,
+    serviceCategory: (raw.service_category as string) ?? '',
+    contactPerson: (raw.contact_person as string) ?? '',
     phone: (raw.phone as string) ?? '',
     assignedEvent: (raw.assigned_event as string) ?? '',
     expectedArrivalTime: raw.expected_arrival_time as string,
@@ -90,8 +102,9 @@ function adaptVendor(raw: Record<string, unknown>): VendorTrackingItem {
     checkInStatus: raw.check_in_status as VendorTrackingItem['checkInStatus'],
     gateLocation: (raw.gate_location as string) ?? '',
     pocCoordinator: (raw.poc_coordinator as string) ?? '',
-    delayMinutes: raw.delay_minutes as number,
-    equipmentStatus: (raw.equipment_status as VendorTrackingItem['equipmentStatus']) || undefined,
+    delayMinutes: Number(raw.delay_minutes ?? 0),
+    equipmentStatus:
+      (raw.equipment_status as VendorTrackingItem['equipmentStatus']) || undefined,
   };
 }
 
@@ -100,12 +113,13 @@ function adaptDelay(raw: Record<string, unknown>): DelayDetectionItem {
     id: raw.id as string,
     sourceType: raw.source_type as DelayDetectionItem['sourceType'],
     entityName: raw.entity_name as string,
-    delayMinutes: raw.delay_minutes as number,
+    delayMinutes: Number(raw.delay_minutes ?? 0),
     severity: raw.severity as DelayDetectionItem['severity'],
     rootCause: raw.root_cause as string,
     detectedAt: raw.detected_at as string,
     impactSummary: raw.impact_summary as string,
-    cascadingRiskLevel: raw.cascading_risk_level as DelayDetectionItem['cascadingRiskLevel'],
+    cascadingRiskLevel:
+      raw.cascading_risk_level as DelayDetectionItem['cascadingRiskLevel'],
     status: raw.status as DelayDetectionItem['status'],
   };
 }
@@ -115,10 +129,11 @@ function adaptDependency(raw: Record<string, unknown>): DependencyImpactItem {
     id: raw.id as string,
     bottleneckId: raw.bottleneck_id as string,
     bottleneckName: raw.bottleneck_name as string,
-    bottleneckType: raw.bottleneck_type as DependencyImpactItem['bottleneckType'],
+    bottleneckType:
+      raw.bottleneck_type as DependencyImpactItem['bottleneckType'],
     affectedActivity: raw.affected_activity as string,
     scheduledTime: raw.scheduled_time as string,
-    projectedSlipMinutes: raw.projected_slip_minutes as number,
+    projectedSlipMinutes: Number(raw.projected_slip_minutes ?? 0),
     cascadingRisk: raw.cascading_risk as DependencyImpactItem['cascadingRisk'],
     suggestedAction: raw.suggested_action as string,
     status: raw.status as DependencyImpactItem['status'],
@@ -133,23 +148,23 @@ function adaptAlert(raw: Record<string, unknown>): AlertItem {
     severity: raw.severity as AlertItem['severity'],
     category: raw.category as AlertItem['category'],
     timestamp: raw.timestamp as string,
-    acknowledged: raw.acknowledged as boolean,
+    acknowledged: Boolean(raw.acknowledged),
     acknowledgedBy: (raw.acknowledged_by as string) || undefined,
-    actionRequired: raw.action_required as boolean,
+    actionRequired: Boolean(raw.action_required),
     actionLabel: (raw.action_label as string) || undefined,
   };
 }
 
 function adaptStats(raw: Record<string, unknown>): DashboardOverviewStats {
   return {
-    totalEvents: raw.total_events as number,
-    completedEvents: raw.completed_events as number,
-    ongoingEvents: raw.ongoing_events as number,
-    upcomingEvents: raw.upcoming_events as number,
-    delayedEvents: raw.delayed_events as number,
-    activeAlertsCount: raw.active_alerts_count as number,
-    onTimeRatePercent: raw.on_time_rate_percent as number,
-    activeVendorsOnSite: raw.active_vendors_on_site as number,
+    totalEvents: Number(raw.total_events ?? 0),
+    completedEvents: Number(raw.completed_events ?? 0),
+    ongoingEvents: Number(raw.ongoing_events ?? 0),
+    upcomingEvents: Number(raw.upcoming_events ?? 0),
+    delayedEvents: Number(raw.delayed_events ?? 0),
+    activeAlertsCount: Number(raw.active_alerts_count ?? 0),
+    onTimeRatePercent: Number(raw.on_time_rate_percent ?? 0),
+    activeVendorsOnSite: Number(raw.active_vendors_on_site ?? 0),
   };
 }
 
@@ -157,18 +172,27 @@ function adaptStats(raw: Record<string, unknown>): DashboardOverviewStats {
 //  Service Class
 // ─────────────────────────────────────────────────────────────────────────────
 
-class CommandCenterService {
-  // Local state cache — populated from API on first load, mutated optimistically
-  private stats: DashboardOverviewStats = { ...INITIAL_OVERVIEW_STATS };
-  private events: WeddingEvent[] = [...INITIAL_WEDDING_EVENTS];
-  private tasks: TaskItem[] = [...INITIAL_TASK_ITEMS];
-  private vendors: VendorTrackingItem[] = [...INITIAL_VENDORS_TRACKING];
-  private delays: DelayDetectionItem[] = [...INITIAL_DELAY_DETECTIONS];
-  private dependencies: DependencyImpactItem[] = [...INITIAL_DEPENDENCY_IMPACTS];
-  private alerts: AlertItem[] = [...INITIAL_ALERTS];
-  private loaded = false;
+function extractList(raw: unknown): Record<string, unknown>[] {
+  if (Array.isArray(raw)) return raw as Record<string, unknown>[];
+  if (raw && typeof raw === 'object' && Array.isArray((raw as any).results)) {
+    return (raw as any).results as Record<string, unknown>[];
+  }
+  return [];
+}
 
-  // ── Synchronous getters (use cached state, fallback to mock until first load) ──
+class CommandCenterService {
+  // Live cache — strictly initialized as empty, populated ONLY from Django backend
+  private stats: DashboardOverviewStats = { ...EMPTY_OVERVIEW_STATS };
+  private events: WeddingEvent[] = [];
+  private tasks: TaskItem[] = [];
+  private vendors: VendorTrackingItem[] = [];
+  private delays: DelayDetectionItem[] = [];
+  private dependencies: DependencyImpactItem[] = [];
+  private alerts: AlertItem[] = [];
+  private loaded = false;
+  private error: string | null = null;
+
+  // ── Synchronous getters (return current live state) ──
 
   public getOverviewStats(): DashboardOverviewStats {
     return { ...this.stats };
@@ -179,138 +203,226 @@ class CommandCenterService {
   public getDelays(): DelayDetectionItem[] { return [...this.delays]; }
   public getDependencies(): DependencyImpactItem[] { return [...this.dependencies]; }
   public getAlerts(): AlertItem[] { return [...this.alerts]; }
+  public isLoaded(): boolean { return this.loaded; }
+  public getError(): string | null { return this.error; }
 
-  // ── Async loaders — fetch from Django API ──────────────────────────────────
+  // ── Async loaders — fetch all from Django REST API ──────────────────────────
 
   public async loadAll(): Promise<void> {
     try {
       const [rawStats, rawEvents, rawTasks, rawVendors, rawDelays, rawDeps, rawAlerts] =
         await Promise.all([
           apiFetch<Record<string, unknown>>('/overview/'),
-          apiFetch<Record<string, unknown>[]>('/events/'),
-          apiFetch<Record<string, unknown>[]>('/tasks/'),
-          apiFetch<Record<string, unknown>[]>('/vendors/'),
-          apiFetch<Record<string, unknown>[]>('/delays/'),
-          apiFetch<Record<string, unknown>[]>('/dependencies/'),
-          apiFetch<Record<string, unknown>[]>('/alerts/'),
+          apiFetch<unknown>('/events/'),
+          apiFetch<unknown>('/tasks/'),
+          apiFetch<unknown>('/vendors/'),
+          apiFetch<unknown>('/delays/'),
+          apiFetch<unknown>('/dependencies/'),
+          apiFetch<unknown>('/alerts/'),
         ]);
 
       this.stats = adaptStats(rawStats);
-      this.events = rawEvents.map(adaptEvent);
-      this.tasks = rawTasks.map(adaptTask);
-      this.vendors = rawVendors.map(adaptVendor);
-      this.delays = rawDelays.map(adaptDelay);
-      this.dependencies = rawDeps.map(adaptDependency);
-      this.alerts = rawAlerts.map(adaptAlert);
+      this.events = extractList(rawEvents).map(adaptEvent);
+      this.tasks = extractList(rawTasks).map(adaptTask);
+      this.vendors = extractList(rawVendors).map(adaptVendor);
+      this.delays = extractList(rawDelays).map(adaptDelay);
+      this.dependencies = extractList(rawDeps).map(adaptDependency);
+      this.alerts = extractList(rawAlerts).map(adaptAlert);
       this.loaded = true;
+      this.error = null;
     } catch (err) {
-      // Silently fall back to mock data — no crash in dev
-      console.warn('[CommandCentre] API unreachable, using mock data:', err);
+      this.error = err instanceof Error ? err.message : String(err);
+      console.error('[CommandCentre] Backend API connection error:', err);
+      throw err;
     }
   }
 
-  public async refreshStats(): Promise<void> {
+  public async refreshStats(): Promise<DashboardOverviewStats> {
     try {
       const raw = await apiFetch<Record<string, unknown>>('/overview/');
       this.stats = adaptStats(raw);
-    } catch {/* keep stale */}
+    } catch (err) {
+      console.warn('[CommandCentre] refreshStats failed:', err);
+    }
+    return { ...this.stats };
   }
 
-  // ── Action methods — optimistic update + API call ─────────────────────────
+  // ── Action methods — update Django REST API and mutate cache ──────────────
 
-  public acknowledgeAlert(alertId: string, coordinator = 'Operations Lead'): AlertItem[] {
-    // Optimistic
-    this.alerts = this.alerts.map(a =>
+  public async acknowledgeAlert(
+    alertId: string,
+    coordinator = 'Operations Lead'
+  ): Promise<AlertItem[]> {
+    // Optimistic cache update
+    this.alerts = this.alerts.map((a) =>
       a.id === alertId ? { ...a, acknowledged: true, acknowledgedBy: coordinator } : a
     );
-    // Async API
-    apiFetch(`/alerts/${alertId}/acknowledge/`, {
-      method: 'POST',
-      body: JSON.stringify({ acknowledged_by: coordinator }),
-    }).catch(console.warn);
+    // Persist to Django backend
+    try {
+      await apiFetch(`/alerts/${alertId}/acknowledge/`, {
+        method: 'POST',
+        body: JSON.stringify({ acknowledged_by: coordinator }),
+      });
+      await this.refreshStats();
+    } catch (err) {
+      console.error('[CommandCentre] acknowledgeAlert failed on server:', err);
+      throw err;
+    }
     return [...this.alerts];
   }
 
-  public updateTaskStatus(taskId: string, newStatus: TaskItem['status'], progress: number): TaskItem[] {
-    this.tasks = this.tasks.map(t =>
+  public async createAlert(alertData: {
+    title: string;
+    description: string;
+    severity: AlertItem['severity'];
+    category: AlertItem['category'];
+    actionRequired?: boolean;
+    actionLabel?: string;
+  }): Promise<AlertItem[]> {
+    const payload = {
+      title: alertData.title,
+      description: alertData.description,
+      severity: alertData.severity,
+      category: alertData.category,
+      timestamp: 'Just now',
+      acknowledged: false,
+      action_required: alertData.actionRequired ?? false,
+      action_label: alertData.actionLabel ?? '',
+    };
+
+    const created = await apiFetch<Record<string, unknown>>('/alerts/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    const newAlert = adaptAlert(created);
+    this.alerts = [newAlert, ...this.alerts];
+    await this.refreshStats();
+    return [...this.alerts];
+  }
+
+  public async updateTaskStatus(
+    taskId: string,
+    newStatus: TaskItem['status'],
+    progress: number
+  ): Promise<TaskItem[]> {
+    this.tasks = this.tasks.map((t) =>
       t.id === taskId
-        ? { ...t, status: newStatus, progressPercent: progress, delayMinutes: newStatus === 'Completed' ? 0 : t.delayMinutes }
+        ? {
+            ...t,
+            status: newStatus,
+            progressPercent: progress,
+            delayMinutes: newStatus === 'Completed' ? 0 : t.delayMinutes,
+          }
         : t
     );
-    apiFetch(`/tasks/${taskId}/update-progress/`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: newStatus, progress_percent: progress }),
-    }).catch(console.warn);
+
+    try {
+      await apiFetch(`/tasks/${taskId}/update-progress/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus, progress_percent: progress }),
+      });
+      await this.refreshStats();
+    } catch (err) {
+      console.error('[CommandCentre] updateTaskStatus failed on server:', err);
+      throw err;
+    }
     return [...this.tasks];
   }
 
-  public checkInVendor(vendorId: string, gateLocation?: string): VendorTrackingItem[] {
-    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    this.vendors = this.vendors.map(v =>
+  public async checkInVendor(
+    vendorId: string,
+    gateLocation?: string
+  ): Promise<VendorTrackingItem[]> {
+    const nowTime = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    this.vendors = this.vendors.map((v) =>
       v.id === vendorId
-        ? { ...v, checkInStatus: 'Checked-In', actualArrivalTime: nowTime, equipmentStatus: 'Clear', delayMinutes: 0, gateLocation: gateLocation ?? v.gateLocation }
+        ? {
+            ...v,
+            checkInStatus: 'Checked-In',
+            actualArrivalTime: nowTime,
+            equipmentStatus: 'Clear',
+            delayMinutes: 0,
+            gateLocation: gateLocation ?? v.gateLocation,
+          }
         : v
     );
-    apiFetch(`/vendors/${vendorId}/check-in/`, {
-      method: 'POST',
-      body: JSON.stringify({ gate_location: gateLocation ?? '' }),
-    }).catch(console.warn);
+
+    try {
+      await apiFetch(`/vendors/${vendorId}/check-in/`, {
+        method: 'POST',
+        body: JSON.stringify({ gate_location: gateLocation ?? '' }),
+      });
+      await this.refreshStats();
+    } catch (err) {
+      console.error('[CommandCentre] checkInVendor failed on server:', err);
+      throw err;
+    }
     return [...this.vendors];
   }
 
-  public resolveDelay(delayId: string): DelayDetectionItem[] {
-    this.delays = this.delays.map(d =>
+  public async resolveDelay(delayId: string): Promise<DelayDetectionItem[]> {
+    this.delays = this.delays.map((d) =>
       d.id === delayId ? { ...d, status: 'Resolved' } : d
     );
-    apiFetch(`/delays/${delayId}/resolve/`, { method: 'POST' }).catch(console.warn);
+
+    try {
+      await apiFetch(`/delays/${delayId}/resolve/`, { method: 'POST' });
+      await this.refreshStats();
+    } catch (err) {
+      console.error('[CommandCentre] resolveDelay failed on server:', err);
+      throw err;
+    }
     return [...this.delays];
   }
 
-  public mitigateDependency(dependencyId: string): DependencyImpactItem[] {
-    this.dependencies = this.dependencies.map(dep =>
+  public async mitigateDependency(
+    dependencyId: string
+  ): Promise<DependencyImpactItem[]> {
+    this.dependencies = this.dependencies.map((dep) =>
       dep.id === dependencyId ? { ...dep, status: 'Mitigated' } : dep
     );
-    apiFetch(`/dependencies/${dependencyId}/mitigate/`, { method: 'POST' }).catch(console.warn);
+
+    try {
+      await apiFetch(`/dependencies/${dependencyId}/mitigate/`, { method: 'POST' });
+    } catch (err) {
+      console.error('[CommandCentre] mitigateDependency failed on server:', err);
+      throw err;
+    }
     return [...this.dependencies];
   }
 
-  // ── Realtime telemetry simulator ──────────────────────────────────────────
+  // ── Realtime Telemetry Poller ─────────────────────────────────────────────
 
   public subscribeToRealtimeTelemetry(
     onMessage: (update: RealtimeFeedUpdate) => void
   ): () => void {
-    const mockUpdates: RealtimeFeedUpdate[] = [
-      {
-        type: 'VENDOR_CHECKIN',
-        timestamp: 'Just now',
-        message: 'Royal Fireworks & SFX truck cleared Gate 3 security checkpoint.',
-        payload: { vendorId: 'vnd-05', status: 'Checked-In' },
-      },
-      {
-        type: 'TASK_PROGRESS',
-        timestamp: 'Just now',
-        message: 'Mandap Lotus Garland rigging progress updated: 92% completed.',
-        payload: { taskId: 'tsk-104', progress: 92 },
-      },
-      {
-        type: 'EVENT_UPDATE',
-        timestamp: 'Just now',
-        message: 'Baraat procession reached Badi Pol inner courtyard.',
-        payload: { eventId: 'evt-03', location: 'Badi Pol' },
-      },
-      {
-        type: 'NEW_ALERT',
-        timestamp: 'Just now',
-        message: 'VIP Motorcade approaching Lake Gate; parking bay cleared.',
-        payload: { severity: 'Low', title: 'VIP Motorcade Clearance' },
-      },
-    ];
-
-    let index = 0;
-    const intervalId = setInterval(() => {
-      onMessage(mockUpdates[index % mockUpdates.length]);
-      index++;
-    }, 18000);
+    // Poll the backend periodically to detect telemetry changes
+    const intervalId = setInterval(async () => {
+      try {
+        const raw = await apiFetch<Record<string, unknown>>('/overview/');
+        const fresh = adaptStats(raw);
+        if (
+          fresh.activeAlertsCount !== this.stats.activeAlertsCount ||
+          fresh.completedEvents !== this.stats.completedEvents ||
+          fresh.activeVendorsOnSite !== this.stats.activeVendorsOnSite
+        ) {
+          this.stats = fresh;
+          onMessage({
+            type: 'EVENT_UPDATE',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            message: `Operational state updated from Django backend. Live on-time rate: ${fresh.onTimeRatePercent}%.`,
+            payload: fresh,
+          });
+        }
+      } catch {
+        // network hiccup
+      }
+    }, 10000);
 
     return () => clearInterval(intervalId);
   }

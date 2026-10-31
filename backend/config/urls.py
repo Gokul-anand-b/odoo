@@ -21,6 +21,10 @@ urlpatterns = [
     path('api/v1/', include('api.urls')),
 
     # Vendor intelligence API — accessible via both prefixes
+    # Command Centre API
+    path('api/command-centre/', include('command_centre.urls')),
+
+    # Vendor intelligence API (keep existing frontend endpoints available)
     path('api/vendor-intelligence/', include('vendor_intelligence.urls')),
     path('api/vendors/', include('vendor_intelligence.urls')),
 

@@ -89,82 +89,88 @@ export const DelayDetectionPanel: React.FC<DelayDetectionPanelProps> = ({
       </div>
 
       {/* Delay Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-        {delays.map((delay) => {
-          const isResolved = delay.status === 'Resolved';
+      {delays.length === 0 ? (
+        <div className="py-8 text-center text-xs text-gray-500 bg-[#FCFAF7] rounded-xl border border-[#E8D4B0]/40">
+          No active delays or schedule bottlenecks detected. All operations are on schedule.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {delays.map((delay) => {
+            const isResolved = delay.status === 'Resolved';
 
-          return (
-            <div
-              key={delay.id}
-              className={`p-4 rounded-xl border transition ${
-                isResolved
-                  ? 'bg-gray-50 border-gray-200 opacity-70'
-                  : 'bg-[#FFFDFB] border-red-200 hover:border-red-300 shadow-2xs'
-              }`}
-            >
-              {/* Header: Source and Minutes */}
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A7E50] bg-[#FAF5ED] px-2 py-0.5 rounded border border-[#E8D4B0]/60">
-                  {delay.sourceType} Anomaly
-                </span>
-                <span className="text-xs font-bold text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 animate-pulse">
-                  +{delay.delayMinutes} min delay
-                </span>
-              </div>
-
-              {/* Entity Title */}
-              <h3 className="text-sm font-bold text-[#2A1E26] mt-2 line-clamp-1">
-                {delay.entityName}
-              </h3>
-
-              {/* Root Cause Details */}
-              <div className="mt-2.5 p-2.5 rounded-lg bg-white border border-[#E8D4B0]/40 text-xs">
-                <p className="text-[#8E828B] text-[10px] uppercase font-bold tracking-wider">
-                  Identified Root Cause:
-                </p>
-                <p className="text-[#493044] font-medium mt-0.5 leading-relaxed">
-                  {delay.rootCause}
-                </p>
-              </div>
-
-              {/* Impact Summary */}
-              <div className="mt-2.5 text-xs">
-                <p className="text-[11px] text-[#6B5E68] leading-normal">
-                  <strong className="text-[#2A1E26]">Impact:</strong> {delay.impactSummary}
-                </p>
-              </div>
-
-              {/* Meta & Status Action */}
-              <div className="mt-3.5 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  {getSeverityBadge(delay.severity)}
-                  <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${getRiskBadge(
-                      delay.cascadingRiskLevel
-                    )}`}
-                  >
-                    {delay.cascadingRiskLevel} Cascade Risk
+            return (
+              <div
+                key={delay.id}
+                className={`p-4 rounded-xl border transition ${
+                  isResolved
+                    ? 'bg-gray-50 border-gray-200 opacity-70'
+                    : 'bg-[#FFFDFB] border-red-200 hover:border-red-300 shadow-2xs'
+                }`}
+              >
+                {/* Header: Source and Minutes */}
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A7E50] bg-[#FAF5ED] px-2 py-0.5 rounded border border-[#E8D4B0]/60">
+                    {delay.sourceType} Anomaly
+                  </span>
+                  <span className="text-xs font-bold text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 animate-pulse">
+                    +{delay.delayMinutes} min delay
                   </span>
                 </div>
 
-                {!isResolved ? (
-                  <button
-                    type="button"
-                    onClick={() => onResolveDelay?.(delay.id)}
-                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded border border-emerald-300 transition"
-                  >
-                    Mitigate
-                  </button>
-                ) : (
-                  <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Resolved
-                  </span>
-                )}
+                {/* Entity Title */}
+                <h3 className="text-sm font-bold text-[#2A1E26] mt-2 line-clamp-1">
+                  {delay.entityName}
+                </h3>
+
+                {/* Root Cause Details */}
+                <div className="mt-2.5 p-2.5 rounded-lg bg-white border border-[#E8D4B0]/40 text-xs">
+                  <p className="text-[#8E828B] text-[10px] uppercase font-bold tracking-wider">
+                    Identified Root Cause:
+                  </p>
+                  <p className="text-[#493044] font-medium mt-0.5 leading-relaxed">
+                    {delay.rootCause}
+                  </p>
+                </div>
+
+                {/* Impact Summary */}
+                <div className="mt-2.5 text-xs">
+                  <p className="text-[11px] text-[#6B5E68] leading-normal">
+                    <strong className="text-[#2A1E26]">Impact:</strong> {delay.impactSummary}
+                  </p>
+                </div>
+
+                {/* Meta & Status Action */}
+                <div className="mt-3.5 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    {getSeverityBadge(delay.severity)}
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${getRiskBadge(
+                        delay.cascadingRiskLevel
+                      )}`}
+                    >
+                      {delay.cascadingRiskLevel} Cascade Risk
+                    </span>
+                  </div>
+
+                  {!isResolved ? (
+                    <button
+                      type="button"
+                      onClick={() => onResolveDelay?.(delay.id)}
+                      className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded border border-emerald-300 transition"
+                    >
+                      Mitigate
+                    </button>
+                  ) : (
+                    <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Resolved
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

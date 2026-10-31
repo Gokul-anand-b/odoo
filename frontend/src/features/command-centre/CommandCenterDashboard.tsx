@@ -15,9 +15,10 @@ import {
   MapPin,
   Compass,
   CheckCircle2,
+  AlertTriangle,
   X
 } from 'lucide-react';
-import { commandCenterService } from './services/commandCenterService';
+import { commandCenterService, EMPTY_OVERVIEW_STATS } from './services/commandCenterService';
 import {
   DashboardOverviewStats,
   WeddingEvent,
@@ -39,29 +40,33 @@ import { SimulationControls } from './components/SimulationControls';
 import './styles/commandCenter.css';
 
 export default function CommandCenterDashboard() {
-  // Operational State
-  const [stats, setStats] = useState<DashboardOverviewStats>(commandCenterService.getOverviewStats());
-  const [events, setEvents] = useState<WeddingEvent[]>(commandCenterService.getEvents());
-  const [tasks, setTasks] = useState<TaskItem[]>(commandCenterService.getTasks());
-  const [vendors, setVendors] = useState<VendorTrackingItem[]>(commandCenterService.getVendors());
-  const [delays, setDelays] = useState<DelayDetectionItem[]>(commandCenterService.getDelays());
-  const [dependencies, setDependencies] = useState<DependencyImpactItem[]>(commandCenterService.getDependencies());
-  const [alerts, setAlerts] = useState<AlertItem[]>(commandCenterService.getAlerts());
+  // Operational State — strictly initialized with zero/empty values, populated from Django API
+  const [stats, setStats] = useState<DashboardOverviewStats>(EMPTY_OVERVIEW_STATS);
+  const [events, setEvents] = useState<WeddingEvent[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [vendors, setVendors] = useState<VendorTrackingItem[]>([]);
+  const [delays, setDelays] = useState<DelayDetectionItem[]>([]);
+  const [dependencies, setDependencies] = useState<DependencyImpactItem[]>([]);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
 
   // Interactive View States
   const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'tasks' | 'vendors' | 'impact'>('overview');
   const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Live Telemetry / Simulation State
+  // Live Telemetry / API Communication State
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
   const [latestUpdate, setLatestUpdate] = useState<RealtimeFeedUpdate | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isApiLoading, setIsApiLoading] = useState<boolean>(true);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  // ── Bootstrap: load from API on mount ────────────────────────────────────
-  useEffect(() => {
-    commandCenterService.loadAll().then(() => {
+  // ── Bootstrap: load all records from Django REST API ───────────────────────
+  const fetchBackendData = async () => {
+    setIsApiLoading(true);
+    setApiError(null);
+    try {
+      await commandCenterService.loadAll();
       setStats(commandCenterService.getOverviewStats());
       setEvents(commandCenterService.getEvents());
       setTasks(commandCenterService.getTasks());
@@ -69,8 +74,18 @@ export default function CommandCenterDashboard() {
       setDelays(commandCenterService.getDelays());
       setDependencies(commandCenterService.getDependencies());
       setAlerts(commandCenterService.getAlerts());
+      setApiError(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setApiError(msg);
+      console.error('[CommandCenterDashboard] Failed to fetch data from backend:', err);
+    } finally {
       setIsApiLoading(false);
-    });
+    }
+  };
+
+  useEffect(() => {
+    fetchBackendData();
   }, []);
 
   // Live Clock (IST)
@@ -91,29 +106,13 @@ export default function CommandCenterDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Real-time telemetry subscription simulation
+  // Real-time telemetry subscription
   useEffect(() => {
     if (!isStreaming) return;
 
     const unsubscribe = commandCenterService.subscribeToRealtimeTelemetry((update) => {
       setLatestUpdate(update);
-
-      if (update.type === 'TASK_PROGRESS') {
-        const { taskId, progress } = update.payload;
-        setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, progressPercent: progress } : t))
-        );
-      } else if (update.type === 'VENDOR_CHECKIN') {
-        const { vendorId } = update.payload;
-        setVendors((prev) =>
-          prev.map((v) =>
-            v.id === vendorId
-              ? { ...v, checkInStatus: 'Checked-In', actualArrivalTime: '04:15 PM' }
-              : v
-          )
-        );
-      }
-      refreshStats();
+      setStats(commandCenterService.getOverviewStats());
     });
 
     return () => unsubscribe();
@@ -124,93 +123,110 @@ export default function CommandCenterDashboard() {
     setTimeout(() => setToastMessage(null), 5000);
   };
 
-  const refreshStats = () => {
-    // async refresh from API, sync fallback immediately
-    commandCenterService.refreshStats().then(() =>
-      setStats(commandCenterService.getOverviewStats())
-    );
+  // ── Action Handlers: Execute real Django API calls and persist ────────────
+
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    try {
+      const updated = await commandCenterService.acknowledgeAlert(alertId, 'Lead Planner (Ananya Verma)');
+      setAlerts(updated);
+      setStats(commandCenterService.getOverviewStats());
+      showToast('✓ Alert acknowledged and recorded in Django database.');
+    } catch {
+      showToast('⚠️ Failed to save acknowledgment to backend.');
+    }
   };
 
-  // Actions
-  const handleAcknowledgeAlert = (alertId: string) => {
-    const updated = commandCenterService.acknowledgeAlert(alertId, 'Lead Planner (Ananya Verma)');
-    setAlerts(updated);
-    refreshStats();
-    showToast('✓ Alert acknowledged and logged to palace operational record.');
+  const handleUpdateTask = async (taskId: string, status: TaskItem['status'], progress: number) => {
+    try {
+      const updated = await commandCenterService.updateTaskStatus(taskId, status, progress);
+      setTasks(updated);
+      setStats(commandCenterService.getOverviewStats());
+      showToast(`✓ Task updated: ${status} (${progress}%) saved to database.`);
+    } catch {
+      showToast('⚠️ Failed to update task on backend.');
+    }
   };
 
-  const handleUpdateTask = (taskId: string, status: TaskItem['status'], progress: number) => {
-    const updated = commandCenterService.updateTaskStatus(taskId, status, progress);
-    setTasks(updated);
-    refreshStats();
-    showToast(`✓ Task updated: ${status} (${progress}%)`);
+  const handleCheckInVendor = async (vendorId: string) => {
+    try {
+      const updated = await commandCenterService.checkInVendor(vendorId);
+      setVendors(updated);
+      setStats(commandCenterService.getOverviewStats());
+      showToast('✓ Vendor checked-in successfully in Django database.');
+    } catch {
+      showToast('⚠️ Failed to check-in vendor on backend.');
+    }
   };
 
-  const handleCheckInVendor = (vendorId: string) => {
-    const updated = commandCenterService.checkInVendor(vendorId);
-    setVendors(updated);
-    refreshStats();
-    showToast('✓ Vendor checked-in successfully at gate security point.');
+  const handleResolveDelay = async (delayId: string) => {
+    try {
+      const updated = await commandCenterService.resolveDelay(delayId);
+      setDelays(updated);
+      setStats(commandCenterService.getOverviewStats());
+      showToast('✓ Delay marked as mitigated in Django database.');
+    } catch {
+      showToast('⚠️ Failed to resolve delay on backend.');
+    }
   };
 
-  const handleResolveDelay = (delayId: string) => {
-    const updated = commandCenterService.resolveDelay(delayId);
-    setDelays(updated);
-    refreshStats();
-    showToast('✓ Delay marked as mitigated and schedule variance absorbed.');
+  const handleMitigateDependency = async (depId: string) => {
+    try {
+      const updated = await commandCenterService.mitigateDependency(depId);
+      setDependencies(updated);
+      showToast('✓ Cascading buffer applied in Django database.');
+    } catch {
+      showToast('⚠️ Failed to mitigate dependency on backend.');
+    }
   };
 
-  const handleMitigateDependency = (depId: string) => {
-    const updated = commandCenterService.mitigateDependency(depId);
-    setDependencies(updated);
-    showToast('✓ Cascading buffer applied. Downstream milestone protected.');
-  };
-
-  // Simulation Manual Controls
+  // Live Control Triggers (Persisting to backend)
   const handleSimulateVendorArrival = () => {
-    const enRoute = vendors.find((v) => v.checkInStatus === 'En Route' || v.checkInStatus === 'Delayed');
-    if (enRoute) {
-      handleCheckInVendor(enRoute.id);
+    const pendingVendor = vendors.find(
+      (v) => v.checkInStatus === 'En Route' || v.checkInStatus === 'Delayed' || v.checkInStatus === 'Pending'
+    );
+    if (pendingVendor) {
+      handleCheckInVendor(pendingVendor.id);
     } else {
-      showToast('All primary vendors are currently checked-in on site.');
+      showToast('All vendors are currently marked as Checked-In on site.');
     }
   };
 
   const handleSimulateTaskProgress = () => {
-    const ongoing = tasks.find((t) => t.status === 'Ongoing' || t.status === 'Delayed');
-    if (ongoing) {
-      const nextProgress = Math.min(100, ongoing.progressPercent + 20);
-      handleUpdateTask(ongoing.id, nextProgress === 100 ? 'Completed' : 'Ongoing', nextProgress);
+    const activeTask = tasks.find((t) => t.status === 'Ongoing' || t.status === 'Delayed' || t.status === 'Pending');
+    if (activeTask) {
+      const nextProgress = Math.min(100, activeTask.progressPercent + 20);
+      handleUpdateTask(activeTask.id, nextProgress === 100 ? 'Completed' : 'Ongoing', nextProgress);
+    } else {
+      showToast('All operational tasks have reached 100% completion.');
     }
   };
 
-  const handleSimulateNewAlert = () => {
-    const newAlert: AlertItem = {
-      id: `alt-${Date.now()}`,
-      title: 'Varmala Sound Level Exceeds Courtyard Limit',
-      description: 'Audio sensors at Jagmandir pier peaked at 88dB. Acoustic dampening requested.',
-      severity: 'Medium',
-      category: 'Capacity & Power',
-      timestamp: 'Just now',
-      acknowledged: false,
-      actionRequired: true,
-      actionLabel: 'Adjust Master Gain -4dB',
-    };
-    setAlerts((prev) => [newAlert, ...prev]);
-    refreshStats();
-    showToast('⚠️ New real-time alert received from City Palace courtyard sensors.');
+  const handleSimulateNewAlert = async () => {
+    try {
+      const updatedAlerts = await commandCenterService.createAlert({
+        title: 'Varmala Sound Level Exceeds Courtyard Limit',
+        description: 'Audio sensors at Jagmandir pier peaked at 88dB. Acoustic dampening requested.',
+        severity: 'Medium',
+        category: 'Capacity & Power',
+        actionRequired: true,
+        actionLabel: 'Adjust Master Gain -4dB',
+      });
+      setAlerts(updatedAlerts);
+      setStats(commandCenterService.getOverviewStats());
+      showToast('⚠️ New real-time alert created and saved to Django backend.');
+    } catch {
+      showToast('⚠️ Failed to create alert on backend.');
+    }
   };
 
   const handleResetData = () => {
-    setEvents(commandCenterService.getEvents());
-    setTasks(commandCenterService.getTasks());
-    setVendors(commandCenterService.getVendors());
-    setDelays(commandCenterService.getDelays());
-    setDependencies(commandCenterService.getDependencies());
-    setAlerts(commandCenterService.getAlerts());
-    refreshStats();
-    showToast('Command Centre operational data reset to baseline mock schedule.');
+    fetchBackendData();
+    showToast('Refreshing all operational records from Django API...');
   };
+
+  // Dynamic values derived directly from live events
+  const weddingTitle = events[0]?.weddingName || 'Samar & Alizeh Royal Wedding';
+  const venueLocation = events[0]?.venueLocation || 'The City Palace & Jagmandir Island, Udaipur, Rajasthan';
 
   return (
     <div className="command-center-container min-h-screen pb-14 bg-[#FAF9F5]">
@@ -248,6 +264,11 @@ export default function CommandCenterDashboard() {
                   <RefreshCw className="w-2.5 h-2.5 animate-spin" />
                   Syncing with server…
                 </span>
+              ) : apiError ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+                  <AlertTriangle className="w-2.5 h-2.5 text-red-600" />
+                  API Disconnected
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   <Compass className="w-2.5 h-2.5" />
@@ -257,13 +278,20 @@ export default function CommandCenterDashboard() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#2A1E26] tracking-tight">
-              Samar & Alizeh <span className="gold-gradient-text">Royal Wedding</span>
+              {weddingTitle.includes('Royal') ? (
+                <>
+                  {weddingTitle.replace(/Royal Wedding/i, '').trim()}{' '}
+                  <span className="gold-gradient-text">Royal Wedding</span>
+                </>
+              ) : (
+                weddingTitle
+              )}
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 mt-1.5 text-xs text-[#6B5E68]">
               <span className="flex items-center gap-1 font-medium">
                 <MapPin className="w-3.5 h-3.5 text-[#9A7E50]" />
-                The City Palace & Jagmandir Island, Udaipur, Rajasthan
+                {venueLocation}
               </span>
               <span className="hidden sm:inline text-gray-300">•</span>
               <span className="flex items-center gap-1 font-medium">
@@ -291,6 +319,30 @@ export default function CommandCenterDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Backend Connection Warning Banner */}
+      {apiError && (
+        <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 pt-4">
+          <div className="bg-red-50 border border-red-300 rounded-xl p-4 text-xs text-red-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold">Backend Communication Error:</strong>
+                <p className="mt-0.5 text-red-700">
+                  Unable to reach Django REST API ({apiError}). Please confirm the Django server is running at <code>http://localhost:8000/api/command-centre/</code>.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={fetchBackendData}
+              className="px-3.5 py-1.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition shrink-0 self-start sm:self-auto"
+            >
+              Retry Connection
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navigation Sub-Tabs */}
       <div className="bg-[#FAF8F5] border-b border-[#E8D4B0]/50 sticky top-0 z-30 px-4 lg:px-8">
@@ -332,7 +384,7 @@ export default function CommandCenterDashboard() {
       <main className="max-w-screen-2xl mx-auto px-4 lg:px-8 pt-6 space-y-6">
         {/* Requirement 8: Real-time Telemetry Controls */}
         <SimulationControls
-          isConnected={true}
+          isConnected={!apiError}
           isStreaming={isStreaming}
           latestUpdate={latestUpdate}
           onToggleStreaming={() => setIsStreaming(!isStreaming)}

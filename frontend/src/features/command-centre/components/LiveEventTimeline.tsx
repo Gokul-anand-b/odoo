@@ -110,7 +110,12 @@ export const LiveEventTimeline: React.FC<LiveEventTimelineProps> = ({
 
       {/* Timeline track list */}
       <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-[#B99A65] before:via-[#E8D4B0] before:to-gray-200">
-        {filteredEvents.map((event, idx) => {
+        {filteredEvents.length === 0 ? (
+          <div className="py-8 text-center text-xs text-gray-500 bg-[#FCFAF7] rounded-xl border border-[#E8D4B0]/40">
+            No ceremony events match the current filter or data is loading from the server.
+          </div>
+        ) : (
+          filteredEvents.map((event, idx) => {
           const isSelected = selectedEventId === event.id;
           const isOngoing = event.status === 'In Progress';
           const isDelayed = event.status === 'Delayed';
@@ -226,7 +231,8 @@ export const LiveEventTimeline: React.FC<LiveEventTimelineProps> = ({
               )}
             </div>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );

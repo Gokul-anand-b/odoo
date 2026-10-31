@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'vendor_intelligence',
     'wedding_blueprint',
     'disruption_engine',
+    'command_centre',
 ]
 
 MIDDLEWARE = [
@@ -162,6 +163,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # CORS configuration
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:3000,http://127.0.0.1:3000',

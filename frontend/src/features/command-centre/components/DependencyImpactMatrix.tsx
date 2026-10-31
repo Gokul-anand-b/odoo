@@ -74,7 +74,12 @@ export const DependencyImpactMatrix: React.FC<DependencyImpactMatrixProps> = ({
 
       {/* Dependency Flow Cards */}
       <div className="space-y-3">
-        {dependencies.map((dep) => {
+        {dependencies.length === 0 ? (
+          <div className="py-8 text-center text-xs text-gray-500 bg-[#FCFAF7] rounded-xl border border-[#E8D4B0]/40">
+            No cascading dependencies at risk. All milestone dependencies are protected.
+          </div>
+        ) : (
+          dependencies.map((dep) => {
           const isMitigated = dep.status === 'Mitigated';
 
           return (
@@ -158,7 +163,8 @@ export const DependencyImpactMatrix: React.FC<DependencyImpactMatrixProps> = ({
               </div>
             </div>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );
