@@ -17,7 +17,6 @@ wedpilot-ai/
 │   ├── disruption_engine/      # Incidents, schedule recovery and validation
 │   ├── vendor_intelligence/    # Vendor and quotation APIs
 │   ├── wedding_blueprint/      # Wedding setup, schedule and blueprint APIs
-│   ├── command_centre/         # Command Centre prototype API and models
 │   ├── demo_config/            # Local SQLite settings and routes for demo seeds
 │   └── manage.py               # Main backend entry point (config.settings)
 ├── frontend/
@@ -61,11 +60,8 @@ python manage.py runserver
 The API runs at `http://localhost:8000`
 
 The standard backend entry point is `backend/manage.py` and it uses
-`backend/config/settings.py`. Command Centre demo data uses the separate
-`demo_config.settings` module, which reuses the main settings but selects local
-SQLite and adds the prototype Command Centre API route. The seed scripts use
-this isolated configuration so they do not target the configured Supabase
-database.
+`backend/config/settings.py`. The `demo_config.settings` module reuses the main
+settings but selects local SQLite for isolated demo seed scripts.
 
 ## 🎨 Design System
 
@@ -89,7 +85,6 @@ database.
 |--------|-------------|--------|
 | Wedding Blueprint | Wedding setup, event schedule and blueprint | Implemented |
 | Vendor Intelligence | Vendor directory, quotation comparison and cost insights | Implemented |
-| Wedding Command Centre | Live-style operations dashboard and simulation | Prototype |
 | Disruption & Recovery | Incident analysis and deterministic recovery plans | Implemented |
 | Financial & Guest Intelligence | Budget, payments, guest and RSVP management | Planned |
 

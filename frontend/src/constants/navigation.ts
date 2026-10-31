@@ -33,17 +33,17 @@ export const navigationItems: NavItem[] = [
     href: '/wedding-blueprint',
   },
   {
+    id: 'command-centre',
+    label: 'Wedding Command Centre',
+    icon: Radio,
+    href: '/command-centre',
+  },
+  {
     id: 'vendor-intelligence',
     label: 'Vendor Intelligence',
     icon: Brain,
     href: '/vendor-intelligence',
     badge: 'AI',
-  },
-  {
-    id: 'command-centre',
-    label: 'Wedding Command Centre',
-    icon: Radio,
-    href: '/command-centre',
   },
   {
     id: 'disruption-recovery',

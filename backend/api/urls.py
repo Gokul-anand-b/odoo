@@ -21,4 +21,5 @@ urlpatterns = [
     path('', include('wedding_blueprint.urls')),
     path('', include('vendor_intelligence.urls')),
     path('disruptions/', include('disruption_engine.urls')),
+    path('command-centre/', include('command_centre.urls')),
 ]
