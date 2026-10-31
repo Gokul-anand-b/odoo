@@ -7,31 +7,31 @@
    ═══════════════════════════════════════════════ */
 
 :root {
-  --plum:          #493044;
-  --plum-mid:      #5D3F58;
-  --plum-light:    #7A5572;
-  --plum-deep:     #2E1F2A;
-  --plum-900:      #1C1018;
+  --plum:          #1A130D;
+  --plum-mid:      #241B12;
+  --plum-light:    #302419;
+  --plum-deep:     #140E09;
+  --plum-900:      #080503;
 
-  --gold:          #B99A65;
-  --gold-bright:   #CDB07A;
-  --gold-light:    #D4BA8A;
-  --gold-muted:    #9A7E50;
-  --gold-pale:     #E8D4B0;
+  --gold:          #C59B51;
+  --gold-bright:   #D7BA78;
+  --gold-light:    #F5E4BE;
+  --gold-muted:    #A88039;
+  --gold-pale:     #FAF0DC;
 
-  --ivory:         #F7EFE8;
-  --ivory-warm:    #F2E8DF;
-  --ivory-deep:    #EBE0D5;
-  --warm-white:    #FFFCF8;
+  --ivory:         #FAF6EE;
+  --ivory-warm:    #F5EFE4;
+  --ivory-deep:    #ECE3D4;
+  --warm-white:    #FFFFFF;
 
-  --rose:          #C9A6B2;
-  --rose-deep:     #A07884;
+  --rose:          #D4BA8A;
+  --rose-deep:     #B99A65;
 
-  --text-ink:      #2A1E26;
-  --text-body:     #4A3840;
-  --text-muted:    #76636D;
-  --text-ghost:    #776971;
-  --text-on-dark:  #F0E8EE;
+  --text-ink:      #1A130D;
+  --text-body:     #3D2E22;
+  --text-muted:    #7A6A5A;
+  --text-ghost:    #9A8A7A;
+  --text-on-dark:  #FAF6EE;
 
   --border:        rgba(185,154,101,0.18);
   --border-soft:   rgba(185,154,101,0.10);
@@ -50,19 +50,7 @@
   --shadow-glow: 0 0 40px rgba(185,154,101,0.15), 0 0 80px rgba(185,154,101,0.08);
 }
 
-@theme inline {
-  --color-plum:       var(--plum);
-  --color-plum-mid:   var(--plum-mid);
-  --color-plum-deep:  var(--plum-deep);
-  --color-gold:       var(--gold);
-  --color-gold-light: var(--gold-light);
-  --color-gold-muted: var(--gold-muted);
-  --color-ivory:      var(--ivory);
-  --color-warm-white: var(--warm-white);
-  --color-rose:       var(--rose);
-  --font-display: var(--font-heading), Georgia, serif;
-  --font-sans:    var(--font-body), system-ui, sans-serif;
-}
+
 
 /* ═══════════════ BASE ═══════════════ */
 *, *::before, *::after { box-sizing: border-box; }
@@ -498,15 +486,19 @@ body {
   }
 }
 
-/* ═══════════════ VENDOR INTELLIGENCE WORKSPACE ═══════════════ */
+
+/* ==============================================
+   VENDOR INTELLIGENCE WORKSPACE
+   ============================================== */
 .vendor-workspace {
   color: var(--text-body);
 }
 
 .vendor-hero {
   min-height: 270px;
-  background: linear-gradient(120deg, #2e1f2a, #493044);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, #1C130C 0%, #2A1F17 50%, #140E09 100%);
+  border: 1px solid rgba(215, 186, 120, 0.35);
+  box-shadow: 0 12px 40px -10px rgba(15, 11, 8, 0.6);
 }
 
 .vendor-hero-photo {
@@ -534,86 +526,6 @@ body {
 .vendor-content-section {
   min-width: 0;
   scroll-margin-top: 6rem;
-}
-
-.vendor-workspace .luxury-gold-card {
-  border: 1px solid rgba(185,154,101,0.2) !important;
-  background: var(--warm-white) !important;
-  box-shadow: var(--shadow-sm) !important;
-  color: var(--text-body) !important;
-  backdrop-filter: none !important;
-}
-
-.vendor-workspace .bg-wedding-950,
-.vendor-workspace .bg-wedding-900,
-.vendor-workspace .bg-wedding-850,
-.vendor-workspace .bg-wedding-800,
-.vendor-workspace .bg-wedding-750,
-.vendor-workspace .bg-wedding-700 {
-  background-color: var(--ivory-warm) !important;
-}
-
-.vendor-workspace .bg-gradient-to-b,
-.vendor-workspace .bg-gradient-to-br {
-  background-image: none !important;
-  background-color: var(--warm-white) !important;
-}
-
-.vendor-workspace .text-cream-50,
-.vendor-workspace .text-cream-100,
-.vendor-workspace .text-cream-200 {
-  color: var(--text-ink) !important;
-}
-
-.vendor-workspace .text-cream-300,
-.vendor-workspace .text-cream-400 {
-  color: var(--text-muted) !important;
-}
-
-.vendor-workspace .text-gold-300,
-.vendor-workspace .text-gold-400 {
-  color: var(--gold-muted) !important;
-}
-
-.vendor-workspace .text-vermillion-400,
-.vendor-workspace .text-vermillion-500 {
-  color: #A83A22 !important;
-}
-
-.vendor-workspace .border-wedding-800,
-.vendor-workspace .border-wedding-700 {
-  border-color: rgba(185,154,101,0.18) !important;
-}
-
-.vendor-workspace input:not([type="range"]),
-.vendor-workspace select,
-.vendor-workspace textarea {
-  max-width: 100%;
-  min-width: 0;
-  color: var(--text-ink) !important;
-}
-
-#vendor-cost-intelligence .flex.items-center.gap-2.font-sans {
-  flex-wrap: wrap;
-}
-
-#vendor-cost-intelligence select {
-  flex: 1 1 12rem;
-}
-
-.vendor-workspace input::placeholder,
-.vendor-workspace textarea::placeholder {
-  color: var(--text-ghost) !important;
-  opacity: 0.8;
-}
-
-.vendor-workspace option {
-  background: var(--warm-white);
-  color: var(--text-ink);
-}
-
-.vendor-workspace .fixed.inset-0 > .bg-gradient-to-b {
-  border-color: rgba(185,154,101,0.28);
 }
 
 @media (max-width: 640px) {

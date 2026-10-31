@@ -40,7 +40,8 @@ export default function Sidebar() {
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         className="hidden lg:flex flex-col fixed left-0 top-0 h-screen z-50 select-none"
         style={{
-          background: 'linear-gradient(175deg, #493044 0%, #3A2536 40%, #2B1B28 75%, #1C1018 100%)',
+          background: 'linear-gradient(175deg, #1A130D 0%, #140E09 40%, #0E0905 75%, #080503 100%)',
+          borderRight: '1px solid rgba(215, 186, 120, 0.25)',
         }}
       >
         {/* Ambient glow orb */}
@@ -189,7 +190,7 @@ export default function Sidebar() {
           onClick={() => setCollapsed(!collapsed)}
           className="absolute top-8 -right-3.5 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer z-50 shadow-lg"
           style={{
-            background: 'linear-gradient(135deg, #493044, #3A2536)',
+            background: 'linear-gradient(135deg, #241B12, #17110C)',
             border: '1.5px solid rgba(185,154,101,0.50)',
           }}
         >
