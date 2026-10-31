@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../../tailwind.config.js";
 
 /* ═══════════════════════════════════════════════
    WEDPILOT AI — LUXURY DESIGN SYSTEM v2
@@ -116,6 +117,37 @@ body {
   line-height: 1.5;
 }
 
+.luxury-gold-card {
+  background: linear-gradient(165deg, rgba(35, 26, 18, 0.85), rgba(20, 15, 10, 0.95));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(215, 186, 120, 0.28);
+  box-shadow: 0 12px 40px -10px rgba(10, 7, 5, 0.55);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.luxury-gold-card:hover {
+  border-color: rgba(215, 186, 120, 0.55);
+  box-shadow: 0 18px 45px -8px rgba(215, 186, 120, 0.16);
+}
+
+.gold-glow-border {
+  border: 1px solid #D7BA78;
+  box-shadow: 0 0 25px -4px rgba(215, 186, 120, 0.4);
+}
+
+.gold-shimmer-text {
+  background: linear-gradient(90deg, #D7BA78 0%, #FFFDF9 50%, #C59B51 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldShimmer 5s linear infinite;
+}
+
+@keyframes goldShimmer {
+  to { background-position: 200% center; }
+}
+
 .hero-content {
   width: 100%;
   min-height: inherit;
@@ -123,7 +155,7 @@ body {
 }
 
 .hero-title {
-  max-width: 13ch;
+  max-width: 100%;
   font-size: clamp(2rem, 4.2vw, 4rem);
   font-weight: 700;
   line-height: 1.04;
@@ -409,7 +441,7 @@ body {
   }
 
   .hero-title {
-    max-width: 11ch;
+    max-width: 100%;
     font-size: clamp(2rem, 8.5vw, 2.5rem);
     line-height: 1.06;
   }
@@ -462,5 +494,135 @@ body {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═══════════════ VENDOR INTELLIGENCE WORKSPACE ═══════════════ */
+.vendor-workspace {
+  color: var(--text-body);
+}
+
+.vendor-hero {
+  min-height: 270px;
+  background: linear-gradient(120deg, #2e1f2a, #493044);
+  box-shadow: var(--shadow-md);
+}
+
+.vendor-hero-photo {
+  background-image: url("/weddings/hero-palace.jpg");
+  background-position: center 48%;
+  background-size: cover;
+  animation: image-drift 28s ease-in-out infinite alternate;
+}
+
+.vendor-metric-card,
+.vendor-category-panel {
+  border: 1px solid rgba(185,154,101,0.18);
+  background: var(--warm-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.vendor-section-nav {
+  scrollbar-width: none;
+}
+
+.vendor-section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.vendor-content-section {
+  min-width: 0;
+  scroll-margin-top: 6rem;
+}
+
+.vendor-workspace .luxury-gold-card {
+  border: 1px solid rgba(185,154,101,0.2) !important;
+  background: var(--warm-white) !important;
+  box-shadow: var(--shadow-sm) !important;
+  color: var(--text-body) !important;
+  backdrop-filter: none !important;
+}
+
+.vendor-workspace .bg-wedding-950,
+.vendor-workspace .bg-wedding-900,
+.vendor-workspace .bg-wedding-850,
+.vendor-workspace .bg-wedding-800,
+.vendor-workspace .bg-wedding-750,
+.vendor-workspace .bg-wedding-700 {
+  background-color: var(--ivory-warm) !important;
+}
+
+.vendor-workspace .bg-gradient-to-b,
+.vendor-workspace .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: var(--warm-white) !important;
+}
+
+.vendor-workspace .text-cream-50,
+.vendor-workspace .text-cream-100,
+.vendor-workspace .text-cream-200 {
+  color: var(--text-ink) !important;
+}
+
+.vendor-workspace .text-cream-300,
+.vendor-workspace .text-cream-400 {
+  color: var(--text-muted) !important;
+}
+
+.vendor-workspace .text-gold-300,
+.vendor-workspace .text-gold-400 {
+  color: var(--gold-muted) !important;
+}
+
+.vendor-workspace .text-vermillion-400,
+.vendor-workspace .text-vermillion-500 {
+  color: #A83A22 !important;
+}
+
+.vendor-workspace .border-wedding-800,
+.vendor-workspace .border-wedding-700 {
+  border-color: rgba(185,154,101,0.18) !important;
+}
+
+.vendor-workspace input:not([type="range"]),
+.vendor-workspace select,
+.vendor-workspace textarea {
+  max-width: 100%;
+  min-width: 0;
+  color: var(--text-ink) !important;
+}
+
+#vendor-cost-intelligence .flex.items-center.gap-2.font-sans {
+  flex-wrap: wrap;
+}
+
+#vendor-cost-intelligence select {
+  flex: 1 1 12rem;
+}
+
+.vendor-workspace input::placeholder,
+.vendor-workspace textarea::placeholder {
+  color: var(--text-ghost) !important;
+  opacity: 0.8;
+}
+
+.vendor-workspace option {
+  background: var(--warm-white);
+  color: var(--text-ink);
+}
+
+.vendor-workspace .fixed.inset-0 > .bg-gradient-to-b {
+  border-color: rgba(185,154,101,0.28);
+}
+
+@media (max-width: 640px) {
+  .vendor-hero {
+    min-height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vendor-hero-photo {
+    animation: none;
   }
 }
