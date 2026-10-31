@@ -172,6 +172,14 @@ function adaptStats(raw: Record<string, unknown>): DashboardOverviewStats {
 //  Service Class
 // ─────────────────────────────────────────────────────────────────────────────
 
+function extractList(raw: unknown): Record<string, unknown>[] {
+  if (Array.isArray(raw)) return raw as Record<string, unknown>[];
+  if (raw && typeof raw === 'object' && Array.isArray((raw as any).results)) {
+    return (raw as any).results as Record<string, unknown>[];
+  }
+  return [];
+}
+
 class CommandCenterService {
   // Live cache — strictly initialized as empty, populated ONLY from Django backend
   private stats: DashboardOverviewStats = { ...EMPTY_OVERVIEW_STATS };
@@ -205,21 +213,21 @@ class CommandCenterService {
       const [rawStats, rawEvents, rawTasks, rawVendors, rawDelays, rawDeps, rawAlerts] =
         await Promise.all([
           apiFetch<Record<string, unknown>>('/overview/'),
-          apiFetch<Record<string, unknown>[]>('/events/'),
-          apiFetch<Record<string, unknown>[]>('/tasks/'),
-          apiFetch<Record<string, unknown>[]>('/vendors/'),
-          apiFetch<Record<string, unknown>[]>('/delays/'),
-          apiFetch<Record<string, unknown>[]>('/dependencies/'),
-          apiFetch<Record<string, unknown>[]>('/alerts/'),
+          apiFetch<unknown>('/events/'),
+          apiFetch<unknown>('/tasks/'),
+          apiFetch<unknown>('/vendors/'),
+          apiFetch<unknown>('/delays/'),
+          apiFetch<unknown>('/dependencies/'),
+          apiFetch<unknown>('/alerts/'),
         ]);
 
       this.stats = adaptStats(rawStats);
-      this.events = rawEvents.map(adaptEvent);
-      this.tasks = rawTasks.map(adaptTask);
-      this.vendors = rawVendors.map(adaptVendor);
-      this.delays = rawDelays.map(adaptDelay);
-      this.dependencies = rawDeps.map(adaptDependency);
-      this.alerts = rawAlerts.map(adaptAlert);
+      this.events = extractList(rawEvents).map(adaptEvent);
+      this.tasks = extractList(rawTasks).map(adaptTask);
+      this.vendors = extractList(rawVendors).map(adaptVendor);
+      this.delays = extractList(rawDelays).map(adaptDelay);
+      this.dependencies = extractList(rawDeps).map(adaptDependency);
+      this.alerts = extractList(rawAlerts).map(adaptAlert);
       this.loaded = true;
       this.error = null;
     } catch (err) {

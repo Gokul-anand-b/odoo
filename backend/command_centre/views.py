@@ -54,6 +54,7 @@ class WeddingEventViewSet(viewsets.ModelViewSet):
     """
     queryset = WeddingEvent.objects.all().prefetch_related('tasks')
     serializer_class = WeddingEventSerializer
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -102,6 +103,7 @@ class TaskItemViewSet(viewsets.ModelViewSet):
     """
     queryset = TaskItem.objects.all().select_related('event')
     serializer_class = TaskItemSerializer
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -156,6 +158,7 @@ class VendorTrackingViewSet(viewsets.ModelViewSet):
     """
     queryset = VendorTrackingItem.objects.all()
     serializer_class = VendorTrackingItemSerializer
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -191,6 +194,7 @@ class DelayDetectionViewSet(viewsets.ModelViewSet):
     """
     queryset = DelayDetectionItem.objects.all()
     serializer_class = DelayDetectionItemSerializer
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -229,6 +233,7 @@ class DependencyImpactViewSet(viewsets.ModelViewSet):
     """
     queryset = DependencyImpactItem.objects.all()
     serializer_class = DependencyImpactItemSerializer
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -267,6 +272,7 @@ class AlertItemViewSet(viewsets.ModelViewSet):
     """
     queryset = AlertItem.objects.all()
     serializer_class = AlertItemSerializer
+    pagination_class = None
 
     def get_queryset(self):
         qs = super().get_queryset()

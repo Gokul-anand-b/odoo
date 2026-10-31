@@ -25,7 +25,7 @@ DEBUG = config('DJANGO_DEBUG', default='True').lower() == 'true'
 
 ALLOWED_HOSTS = config(
     'DJANGO_ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
+    default='*',
 ).split(',')
 
 
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'vendor_intelligence',
     'wedding_blueprint',
     'disruption_engine',
+    'command_centre',
 ]
 
 MIDDLEWARE = [
@@ -161,6 +162,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # CORS configuration
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:3000,http://127.0.0.1:3000',
