@@ -22,6 +22,8 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # Feature Apps
+    'common',
+    'wedding_blueprint',
     'vendor_intelligence',
 ]
 
