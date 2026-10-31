@@ -10,25 +10,29 @@ WedPilot AI is an intelligent wedding planning and operations management platfor
 
 ```
 wedpilot-ai/
-│
-├── frontend/          → Next.js + TypeScript + Tailwind CSS
-│   ├── src/
-│   │   ├── app/       → Next.js App Router pages
-│   │   ├── components/→ Reusable UI components
-│   │   ├── features/  → Feature-specific modules
-│   │   ├── lib/       → Utilities and helpers
-│   │   ├── hooks/     → Custom React hooks
-│   │   ├── services/  → API service layer
-│   │   ├── types/     → TypeScript type definitions
-│   │   └── constants/ → App-wide constants and mock data
-│   └── public/        → Static assets
-│
-├── backend/           → Django + DRF
-│   ├── config/        → Django project settings
-│   ├── api/           → REST API endpoints
-│   └── common/        → Shared models, utilities
-│
-└── docs/              → Architecture documentation
+├── backend/
+│   ├── api/                    # Versioned API root and shared endpoints
+│   ├── common/                 # Shared Django models and API response helpers
+│   ├── config/                 # Main Django settings, URLs, ASGI and WSGI
+│   ├── disruption_engine/      # Incidents, schedule recovery and validation
+│   ├── vendor_intelligence/    # Vendor and quotation APIs
+│   ├── wedding_blueprint/      # Wedding setup, schedule and blueprint APIs
+│   ├── command_centre/         # Command Centre prototype API and models
+│   ├── demo_config/            # Local SQLite settings and routes for demo seeds
+│   └── manage.py               # Main backend entry point (config.settings)
+├── frontend/
+│   ├── public/                 # Static images and assets
+│   └── src/
+│       ├── app/                # Next.js routes and page composition
+│       ├── components/         # Shared layout and UI components
+│       ├── features/           # Feature-owned components, services and types
+│       ├── hooks/              # Shared React hooks
+│       ├── lib/                # Shared utilities
+│       ├── services/           # Shared API clients
+│       ├── styles/             # Global styles and design tokens
+│       └── types/              # Shared TypeScript types
+├── docs/                       # Project and architecture documentation
+└── README.md                   # Setup instructions and project overview
 ```
 
 ## 🚀 Quick Start
@@ -56,6 +60,13 @@ python manage.py runserver
 
 The API runs at `http://localhost:8000`
 
+The standard backend entry point is `backend/manage.py` and it uses
+`backend/config/settings.py`. Command Centre demo data uses the separate
+`demo_config.settings` module, which reuses the main settings but selects local
+SQLite and adds the prototype Command Centre API route. The seed scripts use
+this isolated configuration so they do not target the configured Supabase
+database.
+
 ## 🎨 Design System
 
 | Purpose         | Colour            | Hex       |
@@ -76,11 +87,11 @@ The API runs at `http://localhost:8000`
 
 | Module | Description | Status |
 |--------|-------------|--------|
-| Wedding Blueprint | Personalised wedding planning | 🔲 Planned |
-| Vendor Intelligence | Vendor comparison and selection | 🔲 Planned |
-| Wedding Command Centre | Live coordination and visibility | 🔲 Planned |
-| Disruption & Recovery | Operational risk management | 🔲 Planned |
-| Financial & Guest Intelligence | Budget and guest management | 🔲 Planned |
+| Wedding Blueprint | Wedding setup, event schedule and blueprint | Implemented |
+| Vendor Intelligence | Vendor directory, quotation comparison and cost insights | Implemented |
+| Wedding Command Centre | Live-style operations dashboard and simulation | Prototype |
+| Disruption & Recovery | Incident analysis and deterministic recovery plans | Implemented |
+| Financial & Guest Intelligence | Budget, payments, guest and RSVP management | Planned |
 
 ## 🛠️ Adding a New Feature Module
 
@@ -93,7 +104,7 @@ The API runs at `http://localhost:8000`
 
 ### Backend
 
-1. Create a new Django app or module in `backend/api/<module-name>/`
+1. Create a new Django app in `backend/<module-name>/`
 2. Define models inheriting from `common.models.TimeStampedModel`
 3. Create serializers, views, and URLs
 4. Include your URLs in `backend/api/urls.py`

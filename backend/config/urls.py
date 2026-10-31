@@ -20,6 +20,10 @@ urlpatterns = [
     # API v1
     path('api/v1/', include('api.urls')),
 
+    # Vendor intelligence API (keep existing frontend endpoints available)
+    path('api/vendor-intelligence/', include('vendor_intelligence.urls')),
+    path('api/', include('vendor_intelligence.urls')),
+
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

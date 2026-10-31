@@ -19,14 +19,14 @@ import {
 import Sidebar from '@/components/layout/Sidebar';
 import TopNav from '@/components/layout/TopNav';
 import Footer from '@/components/layout/Footer';
-import { INITIAL_QUOTES, INITIAL_VENDORS } from '../../../features/vendor-intelligence/constants/mockVendorData';
-import { HiddenCostIntelligence } from '../../../features/vendor-intelligence/components/HiddenCostIntelligence';
-import { QuotationComparisonMatrix } from '../../../features/vendor-intelligence/components/QuotationComparisonMatrix';
-import { QuotationUploadDropzone } from '../../../features/vendor-intelligence/components/QuotationUploadDropzone';
-import { RegisterVendorModal } from '../../../features/vendor-intelligence/components/RegisterVendorModal';
-import { VendorDirectory } from '../../../features/vendor-intelligence/components/VendorDirectory';
-import { VendorSelectionModal } from '../../../features/vendor-intelligence/components/VendorSelectionModal';
-import { Quotation, Vendor, VendorCategory } from '../../../features/vendor-intelligence/types/vendor.types';
+import { INITIAL_QUOTES, INITIAL_VENDORS } from '@/features/vendor-intelligence/constants/mockVendorData';
+import { HiddenCostIntelligence } from '@/features/vendor-intelligence/components/HiddenCostIntelligence';
+import { QuotationComparisonMatrix } from '@/features/vendor-intelligence/components/QuotationComparisonMatrix';
+import { QuotationUploadDropzone } from '@/features/vendor-intelligence/components/QuotationUploadDropzone';
+import { RegisterVendorModal } from '@/features/vendor-intelligence/components/RegisterVendorModal';
+import { VendorDirectory } from '@/features/vendor-intelligence/components/VendorDirectory';
+import { VendorSelectionModal } from '@/features/vendor-intelligence/components/VendorSelectionModal';
+import { Quotation, Vendor, VendorCategory } from '@/features/vendor-intelligence/types/vendor.types';
 
 const CATEGORIES: VendorCategory[] = [
   'Catering & Banquets',
