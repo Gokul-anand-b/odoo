@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Brain,
   Cpu,
   GitBranch,
   CalendarCheck,
-  CheckCircle2,
   Sparkles,
   RefreshCw,
   ArrowRight,
@@ -19,11 +18,13 @@ import { blueprintApi } from '../services/blueprintService';
 interface BlueprintGenerationPanelProps {
   wedding: Wedding;
   onBlueprintGenerated: (blueprint: WeddingBlueprint) => void;
+  forceRegenerate?: boolean;
 }
 
 export default function BlueprintGenerationPanel({
   wedding,
   onBlueprintGenerated,
+  forceRegenerate = false,
 }: BlueprintGenerationPanelProps) {
   const [currentStage, setCurrentStage] = useState(0);
   const [generating, setGenerating] = useState(false);
@@ -61,7 +62,7 @@ export default function BlueprintGenerationPanel({
     },
   ];
 
-  const triggerSynthesis = async (isRegenerate = false) => {
+  const triggerSynthesis = useCallback(async (isRegenerate = false) => {
     setGenerating(true);
     setError(null);
     setCurrentStage(1);
@@ -79,21 +80,24 @@ export default function BlueprintGenerationPanel({
         setCurrentStage(5);
         onBlueprintGenerated(result);
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
-      setError(err.message || 'Generation failed');
+      setError(err instanceof Error ? err.message : 'Generation failed');
       setGenerating(false);
       setCurrentStage(0);
     }
-  };
+  }, [wedding.id, onBlueprintGenerated]);
 
   useEffect(() => {
-    if (!blueprint) {
-      triggerSynthesis(false);
+    if (!blueprint || forceRegenerate) {
+      const timer = window.setTimeout(() => {
+        void triggerSynthesis(forceRegenerate);
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
-  }, [wedding.id]);
+  }, [blueprint, forceRegenerate, triggerSynthesis]);
 
   return (
     <div className="card p-6 lg:p-8 max-w-4xl mx-auto my-6 border border-[rgba(185,154,101,0.3)] shadow-2xl relative overflow-hidden bg-gradient-to-br from-[#FFFCF8] to-[#FAF5F0]">

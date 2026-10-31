@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   Calendar,
   Clock,
@@ -8,8 +7,6 @@ import {
   Users,
   Shirt,
   UserCheck,
-  Plus,
-  Sparkles,
 } from 'lucide-react';
 import { WeddingEvent } from '../types/blueprint.types';
 
@@ -30,7 +27,7 @@ export default function EventPlanningTimeline({ events, weddingTitle }: EventPla
             <span className="badge-gold">{events.length} Ceremonies</span>
           </div>
           <p className="text-xs text-[#8A7380] mt-0.5">
-            Synchronized schedule with dedicated coordinators and guest capacities.
+            Synchronized schedule for {weddingTitle}, with dedicated coordinators and guest capacities.
           </p>
         </div>
       </div>
@@ -101,7 +98,7 @@ export default function EventPlanningTimeline({ events, weddingTitle }: EventPla
 
               {ev.notes && (
                 <div className="text-xs text-[#8A7380] italic bg-white p-2.5 rounded-xl border border-[rgba(185,154,101,0.15)]">
-                  "{ev.notes}"
+                  &ldquo;{ev.notes}&rdquo;
                 </div>
               )}
             </div>

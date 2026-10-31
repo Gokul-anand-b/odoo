@@ -1,17 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Crown,
   Calendar,
   Users,
   IndianRupee,
-  MapPin,
   CheckCircle2,
   RefreshCw,
   Sparkles,
-  ArrowRight,
   Plus,
   Clock,
   Layers,
@@ -24,8 +22,9 @@ import {
   Box,
   Shield,
 } from 'lucide-react';
-import { Wedding, WeddingBlueprint } from '../types/blueprint.types';
+import { BlueprintTask, Wedding, WeddingBlueprint } from '../types/blueprint.types';
 import { blueprintApi } from '../services/blueprintService';
+import type { LucideIcon } from 'lucide-react';
 import WeddingSetupWizard from '../components/WeddingSetupWizard';
 import BlueprintGenerationPanel from '../components/BlueprintGenerationPanel';
 import TaskManagementTable from '../components/TaskChecklistTable';
@@ -130,7 +129,7 @@ function HeroCarousel() {
 
 /* ─── Stat Card (Golden dashed borders like PlanifyHer) ─── */
 function StatCard({ icon: Icon, label, value, sub, accent = false }: {
-  icon: any; label: string; value: string; sub: string; accent?: boolean;
+  icon: LucideIcon; label: string; value: string; sub: string; accent?: boolean;
 }) {
   return (
     <div
@@ -188,58 +187,91 @@ export default function WeddingBlueprintScreen() {
   const [selectedWedding, setSelectedWedding] = useState<Wedding | null>(null);
   const [blueprint, setBlueprint] = useState<WeddingBlueprint | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'dashboard' | 'setup' | 'generating'>('dashboard');
+  const [forceRegenerate, setForceRegenerate] = useState(false);
   const [activeTab, setActiveTab] = useState<'tasks' | 'events' | 'allocations'>('tasks');
   const [approvalLoading, setApprovalLoading] = useState(false);
+  const [daysUntilWedding, setDaysUntilWedding] = useState(0);
+  const selectedWeddingId = useRef<string | null>(null);
 
   const fetchWeddings = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const list = await blueprintApi.getWeddings();
       setWeddings(list);
-      if (list.length > 0 && !selectedWedding) {
-        setSelectedWedding(list[0]);
-        if (list[0].blueprint) {
-          setBlueprint(list[0].blueprint);
+      if (list.length > 0) {
+        const wedding = list.find((item) => item.id === selectedWeddingId.current) ?? list[0];
+        selectedWeddingId.current = wedding.id;
+        setSelectedWedding(wedding);
+        if (wedding.blueprint) {
+          setBlueprint(wedding.blueprint);
         } else {
-          try {
-            const bp = await blueprintApi.getBlueprint(list[0].id);
-            setBlueprint(bp);
-          } catch { setBlueprint(null); }
+          setBlueprint(null);
         }
       }
     } catch (err) {
       console.error('Error fetching weddings', err);
+      setLoadError(err instanceof Error ? err.message : 'Unable to load wedding plans.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchWeddings(); }, [fetchWeddings]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void fetchWeddings();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchWeddings]);
 
-  const handleSelectWedding = async (w: Wedding) => {
+  const handleSelectWedding = (w: Wedding) => {
+    selectedWeddingId.current = w.id;
     setSelectedWedding(w);
-    try {
-      const bp = await blueprintApi.getBlueprint(w.id);
-      setBlueprint(bp);
+    if (w.blueprint) {
+      setBlueprint(w.blueprint);
       setViewMode('dashboard');
-    } catch {
+    } else {
       setBlueprint(null);
+      setForceRegenerate(false);
       setViewMode('generating');
     }
   };
 
   const handleSetupComplete = (newWedding: Wedding) => {
+    selectedWeddingId.current = newWedding.id;
     setWeddings((prev) => [newWedding, ...prev]);
     setSelectedWedding(newWedding);
+    setForceRegenerate(false);
     setViewMode('generating');
   };
 
-  const handleBlueprintGenerated = (newBp: WeddingBlueprint) => {
+  const handleBlueprintGenerated = useCallback((newBp: WeddingBlueprint) => {
     setBlueprint(newBp);
+    setForceRegenerate(false);
     setViewMode('dashboard');
-    fetchWeddings();
-  };
+    void fetchWeddings();
+  }, [fetchWeddings]);
+
+  const handleTaskUpdated = useCallback((updatedTask: BlueprintTask) => {
+    setBlueprint((current) => current
+      ? {
+          ...current,
+          tasks: current.tasks.map((task) => task.id === updatedTask.id ? updatedTask : task),
+        }
+      : current);
+  }, []);
+
+  useEffect(() => {
+    const weddingDate = selectedWedding?.start_date;
+    const timer = window.setTimeout(() => {
+      setDaysUntilWedding(weddingDate
+        ? Math.max(0, Math.ceil((new Date(weddingDate).getTime() - Date.now()) / 86400000))
+        : 0);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [selectedWedding?.start_date]);
 
   const handleApprove = async () => {
     if (!selectedWedding || !blueprint) return;
@@ -254,10 +286,6 @@ export default function WeddingBlueprintScreen() {
   const totalTasks = blueprint?.tasks?.length || 0;
   const completedTasks = blueprint?.tasks?.filter(t => t.status === 'completed').length || 0;
   const criticalTasks = blueprint?.tasks?.filter(t => t.is_critical_path).length || 0;
-  const daysUntilWedding = selectedWedding
-    ? Math.max(0, Math.ceil((new Date(selectedWedding.start_date).getTime() - Date.now()) / 86400000))
-    : 0;
-
   return (
     <div className="space-y-8 pb-16">
       {/* ═══════ HERO IMAGE CAROUSEL ═══════ */}
@@ -276,6 +304,7 @@ export default function WeddingBlueprintScreen() {
         <BlueprintGenerationPanel
           wedding={selectedWedding}
           onBlueprintGenerated={handleBlueprintGenerated}
+          forceRegenerate={forceRegenerate}
         />
       )}
 
@@ -302,7 +331,10 @@ export default function WeddingBlueprintScreen() {
             <div className="flex items-center gap-3">
               {blueprint && (
                 <button
-                  onClick={() => setViewMode('generating')}
+                  onClick={() => {
+                    setForceRegenerate(true);
+                    setViewMode('generating');
+                  }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-all"
                   style={{
                     background: 'var(--warm-white)',
@@ -443,7 +475,7 @@ export default function WeddingBlueprintScreen() {
                 {/* Countdown */}
                 <div className="mt-6 pt-4" style={{ borderTop: '1px solid rgba(185,154,101,0.15)' }}>
                   <p className="font-display text-lg italic text-[#B99A65]">
-                    {daysUntilWedding} days until "I do"
+                    {daysUntilWedding} days until &quot;I do&quot;
                   </p>
                 </div>
               </div>
@@ -596,7 +628,11 @@ export default function WeddingBlueprintScreen() {
                 <AnimatePresence mode="wait">
                   {activeTab === 'tasks' && (
                     <motion.div key="tasks" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                      <TaskManagementTable tasks={blueprint.tasks || []} />
+                      <TaskManagementTable
+                        key={blueprint.id}
+                        tasks={blueprint.tasks || []}
+                        onTaskUpdated={handleTaskUpdated}
+                      />
                     </motion.div>
                   )}
                   {activeTab === 'events' && selectedWedding && (
@@ -619,7 +655,21 @@ export default function WeddingBlueprintScreen() {
           )}
 
           {/* ── Empty State ── */}
-          {!blueprint && !loading && selectedWedding && (
+          {loadError && !loading && (
+            <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-900">
+              <p className="font-semibold">Wedding plans could not be loaded.</p>
+              <p className="mt-1">{loadError}</p>
+              <button
+                type="button"
+                onClick={fetchWeddings}
+                className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold hover:bg-red-100"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {!loadError && !blueprint && !loading && selectedWedding && (
             <div
               className="p-16 rounded-3xl text-center max-w-xl mx-auto"
               style={{
@@ -650,7 +700,7 @@ export default function WeddingBlueprintScreen() {
           )}
 
           {/* ── Empty State: No Weddings ── */}
-          {!loading && weddings.length === 0 && (
+          {!loadError && !loading && weddings.length === 0 && (
             <div
               className="p-16 rounded-3xl text-center max-w-xl mx-auto"
               style={{

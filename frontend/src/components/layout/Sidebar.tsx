@@ -22,7 +22,7 @@ const navItems = [
   { id: 'blueprint', label: 'Wedding Blueprint', icon: BookOpen, href: '/wedding-blueprint' },
   { id: 'vendor', label: 'Vendor Intelligence', icon: Brain, badge: 'AI', href: '/vendor-intelligence' },
   { id: 'command', label: 'Command Centre', icon: Radio, href: '/command-centre' },
-  { id: 'disruption', label: 'Disruption & Recovery', icon: ShieldAlert, href: '#' },
+  { id: 'disruption', label: 'Disruption & Recovery', icon: ShieldAlert, href: '/disruption-engine' },
   { id: 'finance', label: 'Financial & Guest', icon: Wallet, href: '#' },
 ];
 

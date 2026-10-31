@@ -10,7 +10,9 @@ export const blueprintApi = {
       cache: 'no-store',
     });
     const json = await res.json();
-    return json.data || [];
+    if (!res.ok) throw new Error(json.message || 'Failed to fetch weddings');
+    if (!Array.isArray(json.data)) throw new Error('The weddings response was invalid');
+    return json.data;
   },
 
   // Create new wedding setup with events

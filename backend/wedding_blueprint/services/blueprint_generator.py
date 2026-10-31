@@ -146,14 +146,36 @@ class RuleBasedCustomisationEngine:
     def generate_tasks(cls, wedding, template: dict) -> list[dict]:
         """Generate deduplicated tasks tailored to guest count, duration, theme, package, and services."""
         task_map: dict[str, dict] = {}
+        services = set(wedding.selected_services or [])
 
         # 1. Add Core Foundation Tasks
         for t in cls.CORE_FOUNDATION_TASKS:
+            if t['code'] == 'DECOR_CONCEPT' and 'decor' not in services:
+                continue
+            if t['code'] == 'CATERING_MENU_FINAL' and 'catering' not in services:
+                continue
             task_map[t['code']] = dict(t)
 
         # 2. Add Template-specific base tasks
         for t in template.get('base_tasks', []):
+            category = t.get('category', '').lower()
+            if category in {'catering', 'f&b'} and 'catering' not in services:
+                continue
+            if category == 'decor' and 'decor' not in services:
+                continue
+            if category == 'photography' and not services.intersection({'photography', 'drone_photography'}):
+                continue
+            if category == 'entertainment' and not services.intersection(
+                {'live_band', 'entertainment', 'fireworks'}
+            ):
+                continue
             task_map[t['code']] = dict(t)
+
+        run_of_show = task_map.get('FINAL_RUN_OF_SHOW')
+        if run_of_show:
+            run_of_show['depends_on'] = [
+                code for code in run_of_show['depends_on'] if code in task_map
+            ]
 
         # 3. Rule: Guest Count Scaling (>250 guests requires high-capacity infrastructure)
         if wedding.guest_count > 250:
@@ -168,17 +190,18 @@ class RuleBasedCustomisationEngine:
                 'coordinator': 'Logistics Lead',
                 'depends_on': ['VENUE_CONTRACT']
             }
-            task_map['DIETARY_RSVP_MATRIX'] = {
-                'code': 'DIETARY_RSVP_MATRIX',
-                'title': 'Allergen & VIP Dietary Preference Audit (>250 pax)',
-                'category': 'Catering',
-                'priority': 'high',
-                'phase': 'F&B',
-                'days_before': 30,
-                'duration': 5,
-                'coordinator': 'F&B Lead',
-                'depends_on': ['INVITATIONS_DISPATCH']
-            }
+            if 'catering' in services:
+                task_map['DIETARY_RSVP_MATRIX'] = {
+                    'code': 'DIETARY_RSVP_MATRIX',
+                    'title': 'Allergen & VIP Dietary Preference Audit (>250 pax)',
+                    'category': 'Catering',
+                    'priority': 'high',
+                    'phase': 'F&B',
+                    'days_before': 30,
+                    'duration': 5,
+                    'coordinator': 'F&B Lead',
+                    'depends_on': ['INVITATIONS_DISPATCH']
+                }
 
         # 4. Rule: Multi-Day Wedding Duration Scaling (>1 day)
         if wedding.duration_days > 1:
@@ -202,11 +225,11 @@ class RuleBasedCustomisationEngine:
                 'days_before': 14,
                 'duration': 3,
                 'coordinator': 'Stage Manager',
-                'depends_on': ['DECOR_CONCEPT']
+                'depends_on': ['DECOR_CONCEPT'] if 'DECOR_CONCEPT' in task_map else ['VENUE_CONTRACT']
             }
 
         # 5. Rule: Theme-specific additions
-        if wedding.theme == 'plum_antique_gold':
+        if wedding.theme == 'plum_antique_gold' and 'decor' in services:
             task_map['VELVET_PLUM_DRAPING'] = {
                 'code': 'VELVET_PLUM_DRAPING',
                 'title': 'Source Custom Plum Velvet Fabric & Antique Gold Gilded Cutlery',
@@ -218,7 +241,9 @@ class RuleBasedCustomisationEngine:
                 'coordinator': 'Decor Lead',
                 'depends_on': ['DECOR_CONCEPT']
             }
-        elif wedding.theme == 'royal_heritage':
+        elif wedding.theme == 'royal_heritage' and (
+            'live_band' in services or 'entertainment' in services
+        ):
             task_map['ROYAL_SHEHNAI_TROUPE'] = {
                 'code': 'ROYAL_SHEHNAI_TROUPE',
                 'title': 'Contract Royal Heritage Shehnai Troupe & Classical Performers',
@@ -246,11 +271,14 @@ class RuleBasedCustomisationEngine:
             }
 
         # 7. Rule: Selected Services Integration
-        services = wedding.selected_services or []
         if 'drone_photography' in services or 'photography' in services:
             task_map['DRONE_PERMIT_AND_SHOTLIST'] = {
                 'code': 'DRONE_PERMIT_AND_SHOTLIST',
-                'title': 'Drone Airspace Permissions & Master Cinematic Shot-List',
+                'title': (
+                    'Drone Airspace Permissions & Master Cinematic Shot-List'
+                    if 'drone_photography' in services
+                    else 'Master Cinematic Shot-List & Photography Schedule'
+                ),
                 'category': 'Photography',
                 'priority': 'high',
                 'phase': 'Creative',
@@ -269,7 +297,7 @@ class RuleBasedCustomisationEngine:
                 'days_before': 15,
                 'duration': 2,
                 'coordinator': 'Sound Engineer',
-                'depends_on': ['DECOR_CONCEPT']
+                'depends_on': ['DECOR_CONCEPT'] if 'DECOR_CONCEPT' in task_map else ['VENUE_CONTRACT']
             }
         if 'makeup_styling' in services or 'styling' in services:
             task_map['BRIDAL_HAIR_MAKEUP_TRIAL'] = {
@@ -283,6 +311,30 @@ class RuleBasedCustomisationEngine:
                 'coordinator': 'Styling Coordinator',
                 'depends_on': []
             }
+        if 'logistics' in services and wedding.guest_count <= 150 and wedding.duration_days == 1:
+            task_map['GUEST_TRANSPORT_PLAN'] = {
+                'code': 'GUEST_TRANSPORT_PLAN',
+                'title': 'Plan VIP Guest Transport & Arrival Logistics',
+                'category': 'Logistics',
+                'priority': 'medium',
+                'phase': 'Logistics',
+                'days_before': 30,
+                'duration': 3,
+                'coordinator': 'Logistics Lead',
+                'depends_on': ['VENUE_CONTRACT'],
+            }
+        if 'fireworks' in services:
+            task_map['FIREWORKS_PERMITS'] = {
+                'code': 'FIREWORKS_PERMITS',
+                'title': 'Secure Venue & Local Authority Pyrotechnics Permits',
+                'category': 'Legal & Venue',
+                'priority': 'high',
+                'phase': 'Risk & Safety',
+                'days_before': 60,
+                'duration': 5,
+                'coordinator': 'Legal & Protocol Lead',
+                'depends_on': ['VENUE_CONTRACT'],
+            }
 
         return list(task_map.values())
 
@@ -291,86 +343,110 @@ class RuleBasedCustomisationEngine:
         """Derive vendor needs from guest count, venue, and services."""
         guest_count = wedding.guest_count
         budget = float(wedding.budget)
-        reqs = []
-
-        # Venue Requirement
-        reqs.append({
+        services = set(wedding.selected_services or [])
+        requirements = [{
             'category': 'venue',
             'service_name': f'Luxury Venue ({wedding.venue_name}, {wedding.venue_city})',
             'headcount_capacity': guest_count + 50,
-            'allocated_budget': round(budget * 0.35, 2),
+            'budget_weight': 35,
             'target_booking_deadline_days': 180,
             'status': 'Venue Verified',
-            'deliverables': ['Main Ballroom', 'Lawn / Outdoor Veranda', 'Bridal Suites (2)', 'Power Backup 100%']
-        })
+            'deliverables': ['Main Ballroom', 'Lawn / Outdoor Veranda', 'Bridal Suites (2)', 'Power Backup 100%'],
+        }]
 
-        # Catering Requirement
-        reqs.append({
-            'category': 'catering',
-            'service_name': f'Five-Star Live Gourmet Catering ({guest_count} Pax)',
-            'headcount_capacity': guest_count,
-            'allocated_budget': round(budget * 0.28, 2),
-            'target_booking_deadline_days': 120,
-            'status': 'Requirement Identified',
-            'deliverables': ['Multi-Cuisine Live Counters', 'Dessert Atelier', 'Plum & Champagne Mocktail Bar', 'Uniformed Butler Service']
-        })
+        service_requirements = [
+            (
+                'catering' in services,
+                'catering',
+                f'Five-Star Live Gourmet Catering ({guest_count} Pax)',
+                28,
+                120,
+                'Requirement Identified',
+                ['Multi-Cuisine Live Counters', 'Dessert Atelier', 'Plum & Champagne Mocktail Bar', 'Uniformed Butler Service'],
+            ),
+            (
+                'decor' in services,
+                'decor_floral',
+                'Theme-Matched Floral Scenography & Event Decor',
+                18,
+                90,
+                'Moodboard In Progress',
+                ['Theme-matched floral design', 'Ceremony and reception decor', 'Stage architecture'],
+            ),
+            (
+                bool(services.intersection({'photography', 'drone_photography'})),
+                'photography',
+                'Wedding Photography & Cinematography',
+                10,
+                110,
+                'Requirement Identified',
+                ['Candid photography', 'Wedding film', 'Same-day highlights'],
+            ),
+            (
+                bool(services.intersection({'live_band', 'entertainment', 'fireworks'})),
+                'entertainment',
+                'Wedding Entertainment & Production',
+                5,
+                60,
+                'Requirement Identified',
+                ['Event entertainment', 'Sound and stage production'],
+            ),
+            (
+                bool(services.intersection({'makeup_styling', 'styling'})),
+                'makeup_styling',
+                'Bridal Styling & Make-up',
+                5,
+                75,
+                'Requirement Identified',
+                ['Bridal hair and make-up trials', 'Wedding-day styling'],
+            ),
+            (
+                'logistics' in services or guest_count > 150 or wedding.duration_days > 1,
+                'logistics',
+                'Guest Chauffeur Fleet & Airport Transfers',
+                4,
+                45,
+                'Requirement Identified',
+                ['VIP escort fleet', 'Guest coaches', 'Airport transfers'],
+            ),
+        ]
 
-        # Decor & Floral Requirement
-        reqs.append({
-            'category': 'decor_floral',
-            'service_name': 'Plum & Antique Gold Royal Floral Scenography',
-            'headcount_capacity': guest_count,
-            'allocated_budget': round(budget * 0.18, 2),
-            'target_booking_deadline_days': 90,
-            'status': 'Moodboard In Progress',
-            'deliverables': ['Velvet Plum Drapery', 'Antique Gold Candelabras', 'Exotic Orchid & Rose Arches', 'Stage Architecture']
-        })
+        for enabled, category, name, weight, deadline, status, deliverables in service_requirements:
+            if enabled:
+                requirements.append({
+                    'category': category,
+                    'service_name': name,
+                    'headcount_capacity': guest_count,
+                    'budget_weight': weight,
+                    'target_booking_deadline_days': deadline,
+                    'status': status,
+                    'deliverables': deliverables,
+                })
 
-        # Photography & Video
-        reqs.append({
-            'category': 'photography',
-            'service_name': 'Cinematic 4K Wedding Film & Master Photographers',
-            'headcount_capacity': guest_count,
-            'allocated_budget': round(budget * 0.10, 2),
-            'target_booking_deadline_days': 110,
-            'status': 'Requirement Identified',
-            'deliverables': ['3 Candid Photographers', '2 Drone Cinematographers', 'Same-day Highlight Reel', 'Handcrafted Luxury Leather Album']
-        })
+        total_weight = sum(requirement['budget_weight'] for requirement in requirements)
+        for requirement in requirements:
+            weight = requirement.pop('budget_weight')
+            requirement['allocated_budget'] = round(budget * weight / total_weight, 2)
 
-        # Entertainment
-        reqs.append({
-            'category': 'entertainment',
-            'service_name': 'Premium Wedding DJ & Acoustic Symphony Ensemble',
-            'headcount_capacity': guest_count,
-            'allocated_budget': round(budget * 0.05, 2),
-            'target_booking_deadline_days': 60,
-            'status': 'Requirement Identified',
-            'deliverables': ['High-End Line Array Rig', 'Intelligent Moving Head Lighting', 'Symphonic Strings for Vows', 'DJ for Afterparty']
-        })
-
-        # Guest Transport if >150 guests or multi-day
-        if guest_count > 150 or wedding.duration_days > 1:
-            reqs.append({
-                'category': 'logistics',
-                'service_name': 'Guest Chauffeur Fleet & Airport Transfers',
-                'headcount_capacity': guest_count,
-                'allocated_budget': round(budget * 0.04, 2),
-                'target_booking_deadline_days': 45,
-                'status': 'Requirement Identified',
-                'deliverables': ['VIP Mercedes / Audi Escort Fleet', 'Luxury AC Coaches for Relatives', 'Luggage Vans']
-            })
-
-        return reqs
+        return requirements
 
     @classmethod
     def generate_resource_requirements(cls, wedding) -> list[dict]:
         """Compute equipment, security, and staff resources required."""
         guests = wedding.guest_count
+        theme_linens = {
+            'plum_antique_gold': 'Plum & Gold Velvet Table Linens',
+            'royal_heritage': 'Heritage Brocade & Antique Gold Table Linens',
+            'modern_minimalist': 'Ivory Minimal Table Linens',
+            'coastal_breeze': 'Coastal Linen Table Settings',
+            'bohemian_chic': 'Botanical Bohemian Table Linens',
+            'traditional_vedic': 'Traditional Silk & Gold Table Linens',
+        }
         resources = [
             {'resource_name': 'Senior Wedding Coordinators', 'quantity': max(2, guests // 75), 'unit': 'coordinators', 'importance': 'Critical', 'allocated_for_event': 'All Events'},
             {'resource_name': 'Guest Hospitality Helpdesk Consoles', 'quantity': max(1, guests // 100), 'unit': 'desks', 'importance': 'High', 'allocated_for_event': 'Lobby / Arrival'},
             {'resource_name': 'Two-Way Radio Headsets (Noise-Cancelling)', 'quantity': max(6, (guests // 50) + 4), 'unit': 'radios', 'importance': 'Critical', 'allocated_for_event': 'Command Centre'},
-            {'resource_name': 'Plum & Gold Velvet Table Linens', 'quantity': max(10, (guests // 8) + 5), 'unit': 'sets', 'importance': 'High', 'allocated_for_event': 'Dinner Reception'},
+            {'resource_name': theme_linens.get(wedding.theme, 'Wedding Theme Table Linens'), 'quantity': max(10, (guests // 8) + 5), 'unit': 'sets', 'importance': 'High', 'allocated_for_event': 'Dinner Reception'},
             {'resource_name': 'Emergency Backup Silent Generators (125 kVA)', 'quantity': 2, 'unit': 'generators', 'importance': 'Critical', 'allocated_for_event': 'Main Stage & Venue'},
             {'resource_name': 'First-Aid Medical & Emergency Response Kit', 'quantity': 2, 'unit': 'kits', 'importance': 'High', 'allocated_for_event': 'Command Centre'}
         ]
