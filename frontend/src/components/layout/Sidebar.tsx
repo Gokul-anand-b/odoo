@@ -69,8 +69,7 @@ export default function Sidebar() {
                 transition={{ duration: 0.25 }}
               >
                 <h1 className="font-display text-xl font-bold tracking-wide" style={{ color: '#F0E8EE' }}>
-                  Wed<span className="text-gold">Pilot</span>
-                  <span className="text-gold text-xs ml-0.5 font-sans font-bold tracking-widest"> AI</span>
+                  Etern<span className="text-gold">elle</span>
                 </h1>
                 <p className="text-[9px] tracking-[0.28em] uppercase font-semibold mt-0.5" style={{ color: 'rgba(185,154,101,0.55)' }}>
                   Luxury Operations

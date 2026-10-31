@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'WedPilot AI — Beyond Wedding Planning. Intelligent Wedding Resilience.',
+  title: 'Eternelle — Luxury Operations & Intelligent Wedding Resilience',
   description:
-    'WedPilot AI is the premium intelligent wedding planning and operations management platform for luxury wedding agencies. Orchestrate every celebration perfectly.',
-  keywords: ['wedding planning', 'luxury weddings', 'wedding management', 'AI wedding planner', 'vendor management'],
+    'Eternelle is the premium intelligent wedding planning and operations management platform for luxury wedding agencies. Orchestrate every celebration perfectly.',
+  keywords: ['wedding planning', 'luxury weddings', 'wedding management', 'AI wedding planner', 'vendor management', 'Eternelle'],
   openGraph: {
-    title: 'WedPilot AI',
-    description: 'Beyond Wedding Planning. Intelligent Wedding Resilience.',
+    title: 'Eternelle — Luxury Operations',
+    description: 'Intelligent Wedding Resilience & Operations Platform',
     type: 'website',
   },
 };
