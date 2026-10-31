@@ -1,21 +1,43 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Compass, ArrowRight, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import Link from 'next/link';
 
-const HeroScene = dynamic(() => import('@/components/three/HeroScene'), { ssr: false });
+const HeroScene = dynamic(() => import('@/components/three/HeroScene'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function HeroSection() {
+  const [showHeroScene, setShowHeroScene] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const loadScene = () => setShowHeroScene(true);
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(loadScene, { timeout: 1500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+    const timeoutId = globalThis.setTimeout(loadScene, 800);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, []);
+
   return (
     <section className="dashboard-section relative isolate min-h-[440px] overflow-hidden rounded-[24px] sm:rounded-[28px] lg:min-h-[480px]"
       style={{ minHeight: 'clamp(440px, 42vw, 560px)' }}
     >
       {/* ─── Background Image ─── */}
       <div className="hero-backdrop absolute inset-0">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1600&q=85"
           alt="Luxury wedding venue"
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, calc(100vw - 280px)"
           className="w-full h-full object-cover"
         />
       </div>
@@ -37,7 +59,7 @@ export default function HeroSection() {
         style={{ background: 'conic-gradient(from 0deg, transparent, rgba(185,154,101,0.3), transparent, rgba(201,166,178,0.2), transparent)' }} />
 
       {/* ─── Three.js Scene ─── */}
-      <HeroScene />
+      {showHeroScene && <HeroScene />}
 
       {/* ─── Decorative Corner Frames ─── */}
       <svg className="absolute top-6 left-6 opacity-30" width="60" height="60" viewBox="0 0 60 60" fill="none">
@@ -118,24 +140,26 @@ export default function HeroSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="hero-actions"
         >
-          <motion.button
+          <motion.div
             whileHover={{ scale: 1.04, y: -2 }}
             whileTap={{ scale: 0.97 }}
-            className="btn-gold flex items-center gap-2.5 text-[15px] px-7 py-3.5"
           >
-            <Plus className="w-4.5 h-4.5" />
-            Create New Wedding
-          </motion.button>
+            <Link href="/wedding-blueprint" className="btn-gold flex items-center gap-2.5 text-[15px] px-7 py-3.5">
+              <Plus className="w-4.5 h-4.5" />
+              Create New Wedding
+            </Link>
+          </motion.div>
 
-          <motion.button
+          <motion.div
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
-            className="btn-ghost flex items-center gap-2.5 text-[15px] px-7 py-3.5"
           >
-            <Compass className="w-4.5 h-4.5" style={{ color: '#D4BA8A' }} />
-            Explore Command Centre
-            <ArrowRight className="w-3.5 h-3.5 opacity-60" />
-          </motion.button>
+            <Link href="/command-centre" className="btn-ghost flex items-center gap-2.5 text-[15px] px-7 py-3.5">
+              <Compass className="w-4.5 h-4.5" style={{ color: '#D4BA8A' }} />
+              Explore Command Centre
+              <ArrowRight className="w-3.5 h-3.5 opacity-60" />
+            </Link>
+          </motion.div>
         </motion.div>
 
         {/* Trust Numbers */}

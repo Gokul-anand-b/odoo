@@ -1,12 +1,14 @@
 import { Wedding, WeddingBlueprint, BlueprintTask, WeddingEvent } from '../types/blueprint.types';
+import { getAccessToken } from '@/features/client-management/services/authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
 
 export const blueprintApi = {
   // Fetch all weddings
   getWeddings: async (): Promise<Wedding[]> => {
+    const token = await getAccessToken();
     const res = await fetch(`${API_BASE_URL}/weddings/`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
       cache: 'no-store',
     });
     const json = await res.json();
@@ -29,7 +31,9 @@ export const blueprintApi = {
 
   // Get wedding details
   getWeddingDetail: async (id: string): Promise<Wedding> => {
+    const token = await getAccessToken();
     const res = await fetch(`${API_BASE_URL}/weddings/${id}/`, {
+      headers: token ? { Authorization: 'Bearer ' + token } : undefined,
       cache: 'no-store',
     });
     const json = await res.json();
@@ -51,7 +55,9 @@ export const blueprintApi = {
 
   // Get blueprint details
   getBlueprint: async (weddingId: string): Promise<WeddingBlueprint> => {
+    const token = await getAccessToken();
     const res = await fetch(`${API_BASE_URL}/weddings/${weddingId}/blueprint/`, {
+      headers: token ? { Authorization: 'Bearer ' + token } : undefined,
       cache: 'no-store',
     });
     const json = await res.json();

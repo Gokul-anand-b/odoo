@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Users, ArrowRight, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 const weddings = [
   {
@@ -54,9 +55,11 @@ export default function WeddingsSection() {
           >
             {/* Image */}
             <div className="relative h-52 shrink-0 overflow-hidden">
-              <img src={w.image} alt={w.couple}
+              <Image src={w.image} alt={w.couple}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                 className="card-image h-full w-full object-cover"
-                loading="lazy" />
+              />
               <div className="absolute inset-0 img-overlay" />
 
               {/* Theme badge */}

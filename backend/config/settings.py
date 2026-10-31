@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'vendor_intelligence',
     'wedding_blueprint',
     'disruption_engine',
+    'client_management',
+    'operations',
 ]
 
 MIDDLEWARE = [
@@ -120,6 +122,8 @@ USE_TZ = True
 # Static files
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type
@@ -128,6 +132,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'client_management.supabase_auth.SupabaseAuthentication',
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': [
@@ -167,3 +175,13 @@ CORS_ALLOWED_ORIGINS = config(
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+# These values are intentionally read only from the environment. Never commit
+# Supabase keys or database passwords to the repository.
+SUPABASE_URL = config('SUPABASE_URL', default='')
+SUPABASE_KEY = config('SUPABASE_KEY', default='')
+SUPABASE_ADMIN_EMAILS = [
+    email.strip().lower()
+    for email in config('SUPABASE_ADMIN_EMAILS', default='').split(',')
+    if email.strip()
+]

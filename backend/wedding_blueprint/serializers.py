@@ -91,12 +91,12 @@ class WeddingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wedding
         fields = [
-            'id', 'title', 'couple_names', 'start_date', 'end_date',
+            'id', 'customer', 'title', 'couple_names', 'start_date', 'end_date',
             'duration_days', 'guest_count', 'budget', 'venue_name',
             'venue_city', 'theme', 'package', 'selected_services',
             'notes', 'events', 'blueprint', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'customer', 'created_at', 'updated_at']
 
     def validate(self, data):
         start = data.get('start_date')

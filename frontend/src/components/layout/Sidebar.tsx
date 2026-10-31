@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,22 +14,60 @@ import {
   Radio,
   ShieldAlert,
   Wallet,
+  ClipboardList,
   Settings,
+  FileText,
+  CalendarDays,
+  CheckSquare,
+  Bell,
 } from 'lucide-react';
+import { authApi, AuthUser } from '@/features/client-management/services/authService';
 
 const navItems = [
-  { id: 'home', label: 'Overview', icon: LayoutDashboard, href: '/' },
-  { id: 'blueprint', label: 'Wedding Blueprint', icon: BookOpen, href: '/wedding-blueprint' },
-  { id: 'vendor', label: 'Vendor Intelligence', icon: Brain, badge: 'AI', href: '/vendor-intelligence' },
-  { id: 'command', label: 'Command Centre', icon: Radio, href: '/command-centre' },
-  { id: 'disruption', label: 'Disruption & Recovery', icon: ShieldAlert, href: '/disruption-engine' },
-  { id: 'finance', label: 'Financial & Guest', icon: Wallet, href: '#' },
+  { id: 'home', label: 'Overview', icon: LayoutDashboard, href: '/', roles: ['admin', 'customer'] },
+  { id: 'blueprint', label: 'Wedding Blueprint', icon: BookOpen, href: '/wedding-blueprint', roles: ['customer'] },
+  { id: 'blueprint-approvals', label: 'Blueprint Approvals', icon: BookOpen, href: '/admin/requests', roles: ['admin'] },
+  { id: 'vendor-dashboard', label: 'Vendor Dashboard', icon: LayoutDashboard, href: '/vendor/dashboard', roles: ['vendor'] },
+  { id: 'vendor-profile', label: 'Vendor Profile', icon: Settings, href: '/operations/vendors', roles: ['vendor'] },
+  { id: 'vendor-quotations', label: 'Quotation Requests', icon: FileText, href: '/vendor-intelligence', roles: ['vendor'] },
+  { id: 'vendor-submissions', label: 'My Quotations', icon: ClipboardList, href: '/vendor-intelligence', roles: ['vendor'] },
+  { id: 'vendor-assignments', label: 'Wedding Assignments', icon: CalendarDays, href: '/operations/vendors', roles: ['vendor'] },
+  { id: 'vendor-schedule', label: 'Wedding Schedule', icon: CalendarDays, href: '/operations/vendors', roles: ['vendor'] },
+  { id: 'vendor-checkin', label: 'Arrival & Check-in', icon: Radio, href: '/command-centre', roles: ['vendor'] },
+  { id: 'vendor-tasks', label: 'Task & Service Management', icon: CheckSquare, href: '/operations/vendors', roles: ['vendor'] },
+  { id: 'vendor-issues', label: 'Issue Reporting', icon: ShieldAlert, href: '/operations/vendors', roles: ['vendor'] },
+  { id: 'vendor-invoices', label: 'Invoice Management', icon: FileText, href: '/operations/vendor-invoices', roles: ['vendor'] },
+  { id: 'vendor-payments', label: 'Payments', icon: Wallet, href: '/operations/finance', roles: ['vendor'] },
+  { id: 'vendor-documents', label: 'Documents', icon: FileText, href: '/operations/documents', roles: ['vendor'] },
+  { id: 'vendor-notifications', label: 'Notifications', icon: Bell, href: '/operations/notifications', roles: ['vendor'] },
+  { id: 'vendor-settings', label: 'Profile & Settings', icon: Settings, href: '/operations/vendors', roles: ['vendor'] },
+  { id: 'vendor', label: 'Vendor Intelligence', icon: Brain, badge: 'AI', href: '/vendor-intelligence', roles: ['admin'] },
+  { id: 'command', label: 'Command Centre', icon: Radio, href: '/command-centre', roles: ['admin'] },
+  { id: 'disruption', label: 'Disruption & Recovery', icon: ShieldAlert, href: '/disruption-engine', roles: ['admin'] },
+  { id: 'finance', label: 'Financial & Guest', icon: Wallet, href: '/operations/finance', roles: ['admin', 'customer'] },
+  { id: 'admin-requests', label: 'All Wedding Requests', icon: ClipboardList, href: '/admin/requests', roles: ['admin'] },
+  { id: 'operations', label: 'Operations & Finance', icon: Wallet, href: '/operations', roles: ['admin', 'customer'] },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [role, setRole] = useState<AuthUser['role'] | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void authApi.me().then((currentUser) => {
+        setUser(currentUser);
+        setRole(currentUser.role);
+      }).catch(() => {
+        setUser(null);
+        setRole(null);
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const w = collapsed ? 76 : 290;
 
@@ -85,7 +123,7 @@ export default function Sidebar() {
 
         {/* ─── Navigation ─── */}
         <nav className="flex-1 px-3 py-1 overflow-y-auto space-y-1">
-          {navItems.map((item) => {
+          {navItems.filter((item) => role && item.roles.includes(role)).map((item) => {
             const isActive = item.href === pathname || (item.href === '/' && pathname === '/');
             const isHov = hovered === item.id;
             const Icon = item.icon;
@@ -170,13 +208,13 @@ export default function Sidebar() {
             style={{ background: 'linear-gradient(135deg, rgba(185,154,101,0.10), rgba(185,154,101,0.04))' }}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-md"
               style={{ background: 'linear-gradient(145deg, #B99A65, #D4BA8A)', color: '#2E1F2A' }}>
-              AV
+              {(user?.name ?? 'User').slice(0, 2).toUpperCase()}
             </div>
             <AnimatePresence>
               {!collapsed && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <p className="text-sm font-semibold" style={{ color: '#F0E8EE' }}>Ananya Verma</p>
-                  <p className="text-[10px] font-medium" style={{ color: '#8A7380' }}>Lead Planner</p>
+                  <p className="text-sm font-semibold" style={{ color: '#F0E8EE' }}>{user?.name ?? 'User'}</p>
+                  <p className="text-[10px] font-medium capitalize" style={{ color: '#8A7380' }}>{user?.role ?? 'account'}</p>
                 </motion.div>
               )}
             </AnimatePresence>

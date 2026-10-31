@@ -26,4 +26,6 @@ urlpatterns = [
     # Feature-specific endpoints:
     path('', include('wedding_blueprint.urls')),
     path('disruptions/', include('disruption_engine.urls')),
+    path('', include('client_management.urls')),
+    path('operations/', include('operations.urls')),
 ]

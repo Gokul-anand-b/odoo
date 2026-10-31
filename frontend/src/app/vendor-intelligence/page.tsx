@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowDownRight,
   ArrowRight,
@@ -19,7 +19,6 @@ import {
 import Sidebar from '@/components/layout/Sidebar';
 import TopNav from '@/components/layout/TopNav';
 import Footer from '@/components/layout/Footer';
-import { INITIAL_QUOTES, INITIAL_VENDORS } from '@/features/vendor-intelligence/constants/mockVendorData';
 import { HiddenCostIntelligence } from '@/features/vendor-intelligence/components/HiddenCostIntelligence';
 import { QuotationComparisonMatrix } from '@/features/vendor-intelligence/components/QuotationComparisonMatrix';
 import { QuotationUploadDropzone } from '@/features/vendor-intelligence/components/QuotationUploadDropzone';
@@ -27,6 +26,10 @@ import { RegisterVendorModal } from '@/features/vendor-intelligence/components/R
 import { VendorDirectory } from '@/features/vendor-intelligence/components/VendorDirectory';
 import { VendorSelectionModal } from '@/features/vendor-intelligence/components/VendorSelectionModal';
 import { Quotation, Vendor, VendorCategory } from '@/features/vendor-intelligence/types/vendor.types';
+import { getAccessToken } from '@/features/client-management/services/authService';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1';
+const VENDOR_API_BASE_URL = API_BASE_URL.replace(/\/api\/v1\/?$/, '/api/vendor-intelligence');
 
 const CATEGORIES: VendorCategory[] = [
   'Catering & Banquets',
@@ -103,13 +106,76 @@ function MetricCard({
 }
 
 export default function VendorIntelligencePage() {
-  const [vendors, setVendors] = useState<Vendor[]>(INITIAL_VENDORS);
-  const [quotes, setQuotes] = useState<Quotation[]>(INITIAL_QUOTES);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [quotes, setQuotes] = useState<Quotation[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<VendorCategory>('Catering & Banquets');
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quotation | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDatabaseRecords = async () => {
+      const token = await getAccessToken();
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const [vendorsResponse, quotesResponse] = await Promise.all([
+        fetch(`${VENDOR_API_BASE_URL}/vendors/`, { headers, cache: 'no-store' }),
+        fetch(`${VENDOR_API_BASE_URL}/quotations/`, { headers, cache: 'no-store' }),
+      ]);
+      if (!vendorsResponse.ok || !quotesResponse.ok) {
+        throw new Error('Unable to load vendor records from the database.');
+      }
+      const vendorPayload = await vendorsResponse.json() as Array<Record<string, unknown>> | { results?: Array<Record<string, unknown>> };
+      const quotationPayload = await quotesResponse.json() as Array<Record<string, unknown>> | { results?: Array<Record<string, unknown>> };
+      const vendorRecords = Array.isArray(vendorPayload) ? vendorPayload : vendorPayload.results ?? [];
+      const quotationRecords = Array.isArray(quotationPayload) ? quotationPayload : quotationPayload.results ?? [];
+      setVendors(vendorRecords.map((record) => ({
+        id: String(record.id),
+        name: String(record.name),
+        category: record.category as VendorCategory,
+        tier: record.tier as Vendor['tier'],
+        rating: Number(record.rating),
+        reviewCount: Number(record.review_count),
+        city: String(record.city),
+        contactPerson: String(record.contact_person),
+        phone: String(record.phone),
+        email: String(record.email),
+        experienceYears: Number(record.experience_years),
+        completedWeddingsCount: Number(record.completed_weddings_count),
+        verified: Boolean(record.verified),
+        specialties: Array.isArray(record.specialties)
+          ? record.specialties.map((service) => typeof service === 'string' ? service : String((service as { service?: unknown }).service ?? ''))
+          : [],
+      })));
+      setQuotes(quotationRecords.map((record) => ({
+        id: String(record.id),
+        quoteNumber: String(record.quote_number),
+        vendorId: String(record.vendor),
+        vendorName: String(record.vendor_name),
+        category: record.category as VendorCategory,
+        weddingName: String(record.wedding_name),
+        weddingDate: String(record.wedding_date),
+        status: record.status as Quotation['status'],
+        submissionDate: String(record.submission_date),
+        expiryDate: String(record.expiry_date ?? ''),
+        basePrice: Number(record.base_price),
+        taxesGst: Number(record.taxes_gst),
+        pricePerPlate: record.price_per_plate == null ? undefined : Number(record.price_per_plate),
+        minimumGuestGuarantee: record.minimum_guest_guarantee == null ? undefined : Number(record.minimum_guest_guarantee),
+        hiddenCostsTotal: Number(record.hidden_costs_total),
+        missingInclusionsCost: Number(record.missing_inclusions_cost),
+        trueEstimatedLandedCost: Number(record.true_estimated_landed_cost),
+        valueScore: Number(record.value_score),
+        pdfFileName: String(record.pdf_file_name ?? ''),
+        items: [],
+        hiddenCosts: [],
+        missingInclusions: [],
+        overtimeHourlyRate: Number(record.overtime_hourly_rate),
+        advancePaymentPercentage: Number(record.advance_payment_percentage),
+      })));
+    };
+    void loadDatabaseRecords().catch((error: Error) => setNotification(error.message));
+  }, []);
 
   const selectedContracts = quotes.filter((quote) => quote.status === 'Selected').length;
   const reviewQuotes = quotes.filter((quote) => quote.status === 'AI Analyzed' || quote.status === 'Under Review').length;
@@ -128,9 +194,35 @@ export default function VendorIntelligencePage() {
     showNotification(`Quotation extracted and added for ${quote.vendorName}.`);
   };
 
-  const handleAddVendor = (vendor: Vendor) => {
-    setVendors((current) => [vendor, ...current]);
-    showNotification(`${vendor.name} was added to your vendor directory.`);
+  const handleAddVendor = async (vendor: Vendor) => {
+    const token = await getAccessToken();
+    const response = await fetch(`${VENDOR_API_BASE_URL}/vendors/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        name: vendor.name,
+        category: vendor.category,
+        tier: vendor.tier,
+        city: vendor.city,
+        contact_person: vendor.contactPerson,
+        phone: vendor.phone,
+        email: vendor.email,
+        experience_years: vendor.experienceYears,
+        completed_weddings_count: vendor.completedWeddingsCount,
+        verified: vendor.verified,
+        specialties: vendor.specialties,
+      }),
+    });
+    const payload = await response.json() as Record<string, unknown>;
+    if (!response.ok) throw new Error(String(payload.detail ?? 'Unable to register vendor.'));
+    setVendors((current) => [{
+      ...vendor,
+      id: String(payload.id),
+    }, ...current]);
+    showNotification(`${vendor.name} was saved to the vendor directory.`);
   };
 
   const handleConfirmSelection = (winner: Quotation) => {

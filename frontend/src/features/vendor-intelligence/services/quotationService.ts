@@ -1,5 +1,4 @@
 import { Quotation, VendorCategory } from '../types/vendor.types';
-import { INITIAL_QUOTES } from '../constants/mockVendorData';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
@@ -21,13 +20,7 @@ export const quotationService = {
         quotations: data.quotations.map(transformBackendQuote),
       };
     } catch (err) {
-      console.warn('Django API offline, using local memory state:', err);
-      const categoryQuotes = INITIAL_QUOTES.filter((q) => q.category === category);
-      return {
-        category,
-        recommendedQuoteId: categoryQuotes[0]?.id || null,
-        quotations: categoryQuotes,
-      };
+      throw new Error(err instanceof Error ? err.message : 'Unable to load quotations from the database.');
     }
   },
 
@@ -49,12 +42,7 @@ export const quotationService = {
         closedCount: data.closed_rival_quotes_count,
       };
     } catch (err) {
-      console.warn('Fallback: updating winner locally:', err);
-      return {
-        success: true,
-        message: 'Contract awarded locally (offline mode).',
-        closedCount: 2,
-      };
+      throw new Error(err instanceof Error ? err.message : 'Unable to select quotation.');
     }
   },
 

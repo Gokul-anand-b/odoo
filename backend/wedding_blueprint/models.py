@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.conf import settings
 from common.models import TimeStampedModel, SoftDeleteModel
 
 
@@ -55,6 +56,13 @@ class VendorCategory(models.TextChoices):
 class Wedding(SoftDeleteModel):
     """Core wedding representation."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='weddings',
+    )
     title = models.CharField(max_length=255, default='Royal Celebration')
     couple_names = models.CharField(max_length=255, help_text='e.g. Aanya & Rohan')
     start_date = models.DateField()

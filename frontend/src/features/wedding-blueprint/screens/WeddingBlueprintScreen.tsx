@@ -30,6 +30,8 @@ import BlueprintGenerationPanel from '../components/BlueprintGenerationPanel';
 import TaskManagementTable from '../components/TaskChecklistTable';
 import EventPlanningTimeline from '../components/EventPlanningTimeline';
 import AllocationsPanel from '../components/AllocationsPanel';
+import { authApi } from '@/features/client-management/services/authService';
+import { clientManagementApi, WeddingRequest } from '@/features/client-management/services/clientManagementService';
 
 /* ─── Hero Image Carousel ─── */
 const HERO_SLIDES = [
@@ -193,6 +195,8 @@ export default function WeddingBlueprintScreen() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'events' | 'allocations'>('tasks');
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [daysUntilWedding, setDaysUntilWedding] = useState(0);
+  const [customerRole, setCustomerRole] = useState<'customer' | 'admin' | 'vendor' | null>(null);
+  const [customerRequest, setCustomerRequest] = useState<WeddingRequest | null>(null);
   const selectedWeddingId = useRef<string | null>(null);
 
   const fetchWeddings = useCallback(async () => {
@@ -210,6 +214,10 @@ export default function WeddingBlueprintScreen() {
         } else {
           setBlueprint(null);
         }
+      } else {
+        selectedWeddingId.current = null;
+        setSelectedWedding(null);
+        setBlueprint(null);
       }
     } catch (err) {
       console.error('Error fetching weddings', err);
@@ -225,6 +233,24 @@ export default function WeddingBlueprintScreen() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [fetchWeddings]);
+
+  const loadCustomerRequest = useCallback(async () => {
+    try {
+      const currentUser = await authApi.me();
+      setCustomerRole(currentUser.role);
+      if (currentUser.role === 'customer') {
+        const requests = await clientManagementApi.list();
+        setCustomerRequest(requests.find((item) => item.status === 'approved') ?? requests[0] ?? null);
+      }
+    } catch {
+      setCustomerRole(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadCustomerRequest(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadCustomerRequest]);
 
   const handleSelectWedding = (w: Wedding) => {
     selectedWeddingId.current = w.id;
@@ -291,8 +317,52 @@ export default function WeddingBlueprintScreen() {
       {/* ═══════ HERO IMAGE CAROUSEL ═══════ */}
       <HeroCarousel />
 
+      {customerRole === 'customer' && customerRequest?.status !== 'approved' && (
+        <section className="card p-6 lg:p-10">
+          <div className="max-w-3xl mx-auto">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#B99A65] font-semibold">Request your celebration</p>
+            <h2 className="font-display text-3xl font-bold text-[#493044] mt-2">
+              {customerRequest ? 'Your request is with our planning team' : 'Tell us about your wedding'}
+            </h2>
+            <p className="text-sm text-[#766873] mt-2 mb-6">
+              Complete the four-step brief below. The full Wedding Blueprint remains locked until an Admin approves your request.
+            </p>
+            {customerRequest && (
+              <div className="mb-6 rounded-2xl bg-[#F7EFE8] border border-[#E8DCD0] p-4">
+                <p className="text-sm font-semibold text-[#493044]">Status: {customerRequest.status.replaceAll('_', ' ')}</p>
+                {customerRequest.decision_reason && <p className="text-sm text-[#8A4B44] mt-1">Admin note: {customerRequest.decision_reason}</p>}
+                {customerRequest.status === 'pending_approval' && <p className="text-xs text-[#766873] mt-2">We will notify you when the request is reviewed.</p>}
+              </div>
+            )}
+
+            {(!customerRequest || customerRequest.status === 'rejected' || customerRequest.status === 'changes_requested') && (
+              <WeddingSetupWizard
+                requestOnly
+                onSuccess={() => undefined}
+                onRequestSubmitted={() => { void loadCustomerRequest(); }}
+                onCancel={() => undefined}
+              />
+            )}
+
+          </div>
+        </section>
+      )}
+
+      {customerRole === 'customer' && customerRequest?.status === 'approved' && (
+        <section className="card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#B99A65] font-semibold">Digital agreement</p>
+            <h2 className="font-display text-xl font-bold text-[#493044] mt-1">Your service agreement is ready</h2>
+            <p className="text-sm text-[#766873] mt-1">Review the document before signing. It is private to your approved wedding.</p>
+          </div>
+          {customerRequest.agreement_document
+            ? <a href={customerRequest.agreement_document} target="_blank" rel="noreferrer" className="rounded-lg bg-[#493044] text-white px-4 py-2 text-sm font-semibold">Open agreement</a>
+            : <span className="text-sm text-[#766873]">Admin is preparing the document.</span>}
+        </section>
+      )}
+
       {/* ═══════ WEDDING SETUP WIZARD ═══════ */}
-      {viewMode === 'setup' && (
+      {customerRole !== 'customer' && viewMode === 'setup' && (
         <WeddingSetupWizard
           onSuccess={handleSetupComplete}
           onCancel={() => setViewMode('dashboard')}
@@ -300,7 +370,7 @@ export default function WeddingBlueprintScreen() {
       )}
 
       {/* ═══════ BLUEPRINT GENERATION PIPELINE ═══════ */}
-      {viewMode === 'generating' && selectedWedding && (
+      {customerRole !== 'customer' && viewMode === 'generating' && selectedWedding && (
         <BlueprintGenerationPanel
           wedding={selectedWedding}
           onBlueprintGenerated={handleBlueprintGenerated}
@@ -309,7 +379,7 @@ export default function WeddingBlueprintScreen() {
       )}
 
       {/* ═══════ DASHBOARD VIEW ═══════ */}
-      {viewMode === 'dashboard' && (
+      {(customerRole !== 'customer' || customerRequest?.status === 'approved') && viewMode === 'dashboard' && (
         <>
           {/* ── Top Bar: Title + Actions ── */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

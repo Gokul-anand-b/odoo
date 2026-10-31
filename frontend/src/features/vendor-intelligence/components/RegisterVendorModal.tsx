@@ -7,7 +7,7 @@ import { Vendor, VendorCategory, VendorTier } from '../types/vendor.types';
 interface RegisterVendorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddVendor: (vendor: Vendor) => void;
+  onAddVendor: (vendor: Vendor) => Promise<void>;
 }
 
 const CATEGORIES: VendorCategory[] = [
@@ -37,6 +37,7 @@ export const RegisterVendorModal: React.FC<RegisterVendorModalProps> = ({
   const [email, setEmail] = useState('');
   const [experienceYears, setExperienceYears] = useState(8);
   const [specialties, setSpecialties] = useState('Royal Hospitality, Live Food Theatres, Palace Logistics');
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
@@ -61,8 +62,9 @@ export const RegisterVendorModal: React.FC<RegisterVendorModalProps> = ({
       specialties: specialties.split(',').map((s) => s.trim()).filter(Boolean),
     };
 
-    onAddVendor(newVendor);
-    onClose();
+    void onAddVendor(newVendor).then(onClose).catch((submitError: unknown) => {
+      setError(submitError instanceof Error ? submitError.message : 'Unable to register vendor.');
+    });
   };
 
   return (
@@ -87,6 +89,7 @@ export const RegisterVendorModal: React.FC<RegisterVendorModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          {error && <p className="text-sm text-red-300">{error}</p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">

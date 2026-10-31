@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils import timezone
@@ -14,17 +16,26 @@ from .serializers import (
     BlueprintTaskSerializer,
 )
 from .services.blueprint_service import BlueprintService
+from client_management.supabase_auth import SupabaseAuthentication
+from client_management.permissions import IsAdminRole
 
 
 class WeddingListCreateAPIView(APIView):
     """List all weddings or create a new wedding setup with associated events."""
 
+    authentication_classes = [SessionAuthentication, SupabaseAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         weddings = Wedding.objects.filter(is_deleted=False).prefetch_related('events', 'blueprint')
+        if not request.user.is_staff:
+            weddings = weddings.filter(customer=request.user)
         serializer = WeddingSerializer(weddings, many=True)
         return success_response(data=serializer.data, message='Weddings retrieved successfully')
 
     def post(self, request):
+        if not request.user.is_staff:
+            return error_response(message='Only admins can create wedding blueprints.', status_code=status.HTTP_403_FORBIDDEN)
         serializer = WeddingCreateWithEventsSerializer(data=request.data)
         if not serializer.is_valid():
             return error_response(message='Validation failed', errors=serializer.errors, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
@@ -61,8 +72,14 @@ class WeddingListCreateAPIView(APIView):
 class WeddingDetailAPIView(APIView):
     """Retrieve, update, or soft delete a specific wedding."""
 
+    authentication_classes = [SessionAuthentication, SupabaseAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
-        wedding = get_object_or_404(Wedding.objects.prefetch_related('events', 'blueprint'), id=pk, is_deleted=False)
+        queryset = Wedding.objects.prefetch_related('events', 'blueprint').filter(id=pk, is_deleted=False)
+        if not request.user.is_staff:
+            queryset = queryset.filter(customer=request.user)
+        wedding = get_object_or_404(queryset)
         serializer = WeddingSerializer(wedding)
         return success_response(data=serializer.data)
 
@@ -123,7 +140,12 @@ class BlueprintGenerateAPIView(APIView):
     Runs Template Matching, Rule Customisation, DAG Topological Sort, and Greedy Scheduling.
     """
 
+    authentication_classes = [SessionAuthentication, SupabaseAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, wedding_id):
+        if not request.user.is_staff:
+            return error_response(message='Only admins can generate blueprints.', status_code=status.HTTP_403_FORBIDDEN)
         wedding = get_object_or_404(Wedding, id=wedding_id, is_deleted=False)
         force_regenerate = request.data.get('force_regenerate', False)
 
@@ -148,8 +170,14 @@ class BlueprintGenerateAPIView(APIView):
 class BlueprintDetailAPIView(APIView):
     """Retrieve full generated blueprint for a wedding."""
 
+    authentication_classes = [SessionAuthentication, SupabaseAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, wedding_id):
-        wedding = get_object_or_404(Wedding, id=wedding_id, is_deleted=False)
+        queryset = Wedding.objects.filter(id=wedding_id, is_deleted=False)
+        if not request.user.is_staff:
+            queryset = queryset.filter(customer=request.user)
+        wedding = get_object_or_404(queryset)
         if not hasattr(wedding, 'blueprint'):
             return error_response(
                 message='Blueprint has not yet been generated for this wedding.',
@@ -161,6 +189,9 @@ class BlueprintDetailAPIView(APIView):
 
 class BlueprintApproveAPIView(APIView):
     """Planners review and approve the generated blueprint."""
+
+    authentication_classes = [SessionAuthentication, SupabaseAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminRole]
 
     def post(self, request, wedding_id):
         wedding = get_object_or_404(Wedding, id=wedding_id, is_deleted=False)
@@ -177,6 +208,9 @@ class TaskUpdateAPIView(APIView):
     Update a task's status, priority, or details.
     Flags task as manually edited so subsequent blueprint regenerations will preserve it!
     """
+
+    authentication_classes = [SessionAuthentication, SupabaseAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminRole]
 
     def put(self, request, pk):
         task = get_object_or_404(BlueprintTask, id=pk)

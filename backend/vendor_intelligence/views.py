@@ -1,5 +1,5 @@
 from decimal import Decimal
-from rest_framework import viewsets, status
+from rest_framework import permissions, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Vendor, Quotation, QuoteLineItem, HiddenCostItem, MissingInclusion, QuoteStatus
@@ -12,10 +12,16 @@ from .serializers import (
 )
 from .services.quote_comparator import QuoteComparator
 from .services.hidden_cost_detector import HiddenCostDetector
+from client_management.permissions import IsAdminRole
 
 class VendorViewSet(viewsets.ModelViewSet):
     queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsAdminRole()]
 
     def get_queryset(self):
         qs = super().get_queryset()

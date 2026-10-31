@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, ChevronDown, Menu, X, Crown, LogOut, User, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { authApi } from '@/features/client-management/services/authService';
+import type { AuthUser } from '@/features/client-management/services/authService';
 
 export default function TopNav() {
   const [searchFocused, setSearchFocused] = useState(false);
@@ -10,11 +13,23 @@ export default function TopNav() {
   const [showProfile, setShowProfile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [today, setToday] = useState('');
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const router = useRouter();
   const notifRef = useRef<HTMLDivElement>(null);
   const profRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setToday(new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    const timer = window.setTimeout(() => {
+      setToday(new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void authApi.me().then(setUser).catch(() => setUser(null));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -44,7 +59,7 @@ export default function TopNav() {
             <div className="hidden sm:block">
               <div className="flex items-center gap-2">
                 <h2 className="font-display text-[1.35rem] font-semibold" style={{ color: 'var(--text-ink)' }}>
-                  Welcome back, <span className="text-gold font-bold">Ananya</span>
+                  Welcome back, <span className="text-gold font-bold">{user?.name ?? 'there'}</span>
                 </h2>
                 <motion.div animate={{ rotate: [0, 14, -8, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }} className="text-lg">
                   ✨
@@ -115,8 +130,8 @@ export default function TopNav() {
                 className="flex items-center gap-2.5 p-1.5 pr-3.5 rounded-xl cursor-pointer transition-all"
                 style={{ background: showProfile ? 'rgba(185,154,101,0.12)' : 'transparent' }}>
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-md"
-                  style={{ background: 'linear-gradient(145deg, var(--gold), var(--gold-light))', color: 'var(--plum-deep)' }}>AV</div>
-                <span className="hidden md:block text-sm font-semibold" style={{ color: 'var(--text-ink)' }}>Ananya</span>
+                  style={{ background: 'linear-gradient(145deg, var(--gold), var(--gold-light))', color: 'var(--plum-deep)' }}>{(user?.name ?? 'User').slice(0, 2).toUpperCase()}</div>
+                <span className="hidden md:block text-sm font-semibold" style={{ color: 'var(--text-ink)' }}>{user?.name ?? 'User'}</span>
                 <ChevronDown className="w-3.5 h-3.5 hidden md:block" style={{ color: 'var(--text-ghost)' }} />
               </motion.button>
               <AnimatePresence>
@@ -125,11 +140,16 @@ export default function TopNav() {
                     className="absolute right-0 mt-2 w-60 rounded-2xl overflow-hidden z-50"
                     style={{ background: 'var(--warm-white)', border: '1px solid var(--border-glow)', boxShadow: 'var(--shadow-xl)' }}>
                     <div className="px-5 py-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
-                      <p className="text-sm font-bold" style={{ color: 'var(--text-ink)' }}>Ananya Verma</p>
-                      <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>Lead Wedding Planner</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--text-ink)' }}>{user?.name ?? 'User'}</p>
+                      <p className="text-xs capitalize" style={{ color: 'var(--text-ghost)' }}>{user?.role ?? 'account'}</p>
                     </div>
                     {[{ icon: User, label: 'My Profile' }, { icon: Settings, label: 'Settings' }, { icon: LogOut, label: 'Sign Out' }].map((it) => (
                       <button key={it.label} className="flex items-center gap-3 w-full px-5 py-3 text-[13px] font-medium hover:bg-ivory/60 transition cursor-pointer"
+                        onClick={() => {
+                          if (it.label === 'Sign Out') {
+                            void authApi.logout().finally(() => router.replace('/login'));
+                          }
+                        }}
                         style={{ color: 'var(--text-muted)' }}>
                         <it.icon className="w-4 h-4" /> {it.label}
                       </button>

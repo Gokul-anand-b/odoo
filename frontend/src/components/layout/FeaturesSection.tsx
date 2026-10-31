@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { BookOpen, Brain, Radio, ShieldAlert, ArrowUpRight } from 'lucide-react';
+import Image from 'next/image';
 
 const features = [
   {
@@ -74,9 +75,11 @@ export default function FeaturesSection() {
             >
               {/* Image */}
               <div className="relative h-40 shrink-0 overflow-hidden">
-                <img src={f.image} alt={f.title}
+                <Image src={f.image} alt={f.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="card-image h-full w-full object-cover"
-                  loading="lazy" />
+                />
                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--warm-white) 5%, transparent 60%)' }} />
                 <div className="absolute inset-0" style={{ background: 'rgba(73,48,68,0.30)' }} />
 

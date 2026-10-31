@@ -4,11 +4,7 @@ import { motion } from 'framer-motion';
 import Sidebar from '@/components/layout/Sidebar';
 import TopNav from '@/components/layout/TopNav';
 import HeroSection from '@/components/layout/HeroSection';
-import StatsSection from '@/components/layout/StatsSection';
-import WeddingsSection from '@/components/layout/WeddingsSection';
 import FeaturesSection from '@/components/layout/FeaturesSection';
-import OperationsSection from '@/components/layout/OperationsSection';
-import FinancialSection from '@/components/layout/FinancialSection';
 import Footer from '@/components/layout/Footer';
 
 const pageVariants = {
@@ -41,18 +37,8 @@ export default function HomePage() {
             {/* Hero */}
             <HeroSection />
 
-            {/* Stats Overview */}
-            <StatsSection />
-
-            {/* Two-column mid-section: Weddings + Features */}
-            <WeddingsSection />
+            {/* Platform capabilities */}
             <FeaturesSection />
-
-            {/* Operations Preview */}
-            <OperationsSection />
-
-            {/* Financial Snapshot */}
-            <FinancialSection />
 
             {/* Footer */}
             <Footer />

@@ -20,9 +20,12 @@ import {
 } from 'lucide-react';
 import { Wedding, WeddingEvent } from '../types/blueprint.types';
 import { blueprintApi } from '../services/blueprintService';
+import { clientManagementApi } from '@/features/client-management/services/clientManagementService';
 
 interface WeddingSetupWizardProps {
   onSuccess: (createdWedding: Wedding) => void;
+  onRequestSubmitted?: () => void;
+  requestOnly?: boolean;
   onCancel?: () => void;
 }
 
@@ -114,7 +117,7 @@ const toDateInputValue = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetupWizardProps) {
+export default function WeddingSetupWizard({ onSuccess, onRequestSubmitted, requestOnly = false, onCancel }: WeddingSetupWizardProps) {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -277,8 +280,22 @@ export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetup
         events,
       };
 
-      const wedding = await blueprintApi.createWedding(payload);
-      onSuccess(wedding);
+      if (requestOnly) {
+        await clientManagementApi.create({
+          wedding_name: formData.title,
+          wedding_date: formData.start_date,
+          location: `${formData.venue_name}, ${formData.venue_city}`,
+          guest_count: formData.guest_count,
+          theme: formData.theme,
+          budget: String(formData.budget),
+          package: formData.package,
+          requirements: formData.notes,
+        });
+        onRequestSubmitted?.();
+      } else {
+        const wedding = await blueprintApi.createWedding(payload);
+        onSuccess(wedding);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while creating wedding setup');
     } finally {
