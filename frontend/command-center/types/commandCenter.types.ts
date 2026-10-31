@@ -34,6 +34,7 @@ export interface WeddingEvent {
   leadCoordinator: string;
   keyVendors: string[];
   notes?: string;
+  weddingName?: string;
 }
 
 export interface TaskItem {

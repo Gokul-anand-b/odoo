@@ -125,8 +125,13 @@ export const VendorTrackingBoard: React.FC<VendorTrackingBoardProps> = ({
       </div>
 
       {/* Grid of Vendor Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        {filteredVendors.map((vendor) => {
+      {filteredVendors.length === 0 ? (
+        <div className="py-8 text-center text-xs text-gray-500 bg-[#FCFAF7] rounded-xl border border-[#E8D4B0]/40">
+          No vendors match the current filter or data is loading from the server.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {filteredVendors.map((vendor) => {
           const isCheckedIn = vendor.checkInStatus === 'Checked-In';
           const isDelayed = vendor.checkInStatus === 'Delayed';
 
@@ -226,7 +231,8 @@ export const VendorTrackingBoard: React.FC<VendorTrackingBoardProps> = ({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -25,7 +25,7 @@ export const OverviewStatsCards: React.FC<OverviewStatsCardsProps> = ({
       id: 'total',
       label: 'Total Ceremonies',
       value: stats.totalEvents,
-      detail: 'Scheduled today & tonight',
+      detail: `${stats.totalEvents} ceremonies scheduled`,
       icon: CalendarDays,
       badge: 'Full Day',
       color: '#493044',
@@ -36,19 +36,19 @@ export const OverviewStatsCards: React.FC<OverviewStatsCardsProps> = ({
       id: 'ongoing',
       label: 'Ongoing Live Event',
       value: stats.ongoingEvents,
-      detail: 'Baraat crossing Tripoliya',
+      detail: stats.ongoingEvents > 0 ? `${stats.ongoingEvents} ceremony currently live` : 'No active ceremonies',
       icon: Radio,
-      badge: 'Live Now',
+      badge: stats.ongoingEvents > 0 ? 'Live Now' : 'Standby',
       color: '#9A7E50',
       bgGlow: 'rgba(185, 154, 101, 0.08)',
       borderColor: 'rgba(185, 154, 101, 0.35)',
-      isLive: true,
+      isLive: stats.ongoingEvents > 0,
     },
     {
       id: 'completed',
       label: 'Completed Events',
       value: stats.completedEvents,
-      detail: 'Hi-Tea & Sufi Sangeet',
+      detail: `${stats.completedEvents} ceremonies concluded`,
       icon: CheckCircle2,
       badge: 'On Schedule',
       color: '#2E8555',
@@ -59,7 +59,7 @@ export const OverviewStatsCards: React.FC<OverviewStatsCardsProps> = ({
       id: 'upcoming',
       label: 'Upcoming Ceremonies',
       value: stats.upcomingEvents,
-      detail: 'Pheras & Grand Banquet',
+      detail: `${stats.upcomingEvents} ceremonies queued next`,
       icon: Clock,
       badge: 'Queued',
       color: '#2563EB',
@@ -70,7 +70,7 @@ export const OverviewStatsCards: React.FC<OverviewStatsCardsProps> = ({
       id: 'delayed',
       label: 'Delayed Events',
       value: stats.delayedEvents,
-      detail: 'Lotus Mandap (+25m)',
+      detail: stats.delayedEvents > 0 ? `${stats.delayedEvents} ceremonies behind schedule` : 'All events on schedule',
       icon: AlertTriangle,
       badge: stats.delayedEvents > 0 ? 'Requires Action' : 'All Clear',
       color: '#D97706',
@@ -82,7 +82,7 @@ export const OverviewStatsCards: React.FC<OverviewStatsCardsProps> = ({
       id: 'alerts',
       label: 'Active Alerts',
       value: stats.activeAlertsCount,
-      detail: stats.activeAlertsCount > 0 ? 'Unacknowledged operational warnings' : 'All alerts resolved',
+      detail: stats.activeAlertsCount > 0 ? `${stats.activeAlertsCount} unacknowledged operational warnings` : 'All alerts resolved',
       icon: BellRing,
       badge: stats.activeAlertsCount > 0 ? 'Action Needed' : 'Normal',
       color: stats.activeAlertsCount > 0 ? '#DC2626' : '#2E8555',
@@ -169,7 +169,7 @@ export const OverviewStatsCards: React.FC<OverviewStatsCardsProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-[#6B5E68]">
-              Overall ceremony schedule is 83.3% compliant with auspicious Muhurat buffers.
+              Overall ceremony schedule is {stats.onTimeRatePercent}% compliant with auspicious Muhurat buffers.
             </p>
           </div>
         </div>

@@ -1,7 +1,6 @@
 export { default as CommandCenterDashboard } from './CommandCenterDashboard';
 export * from './types/commandCenter.types';
 export * from './services/commandCenterService';
-export * from './mock/commandCenterMockData';
 export { OverviewStatsCards } from './components/OverviewStatsCards';
 export { LiveEventTimeline } from './components/LiveEventTimeline';
 export { TaskMonitoringTable } from './components/TaskMonitoringTable';
