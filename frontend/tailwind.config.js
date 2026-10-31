@@ -9,52 +9,56 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        plum: {
-          950: '#150913',
-          900: '#23101E',
-          850: '#2E1527',
-          800: '#3D1C34',
-          700: '#532747',
-          600: '#6C335D',
-          500: '#8A4276',
+        // Deep Warm Bronze & Royal Espresso (Replaces the purple/burgundy)
+        wedding: {
+          950: '#0F0B08', // Deepest Royal Night Bronze
+          900: '#17110C', // Dark Rich Espresso
+          850: '#201811', // Warm Dark Bronze Card
+          800: '#2A1F17', // Elevated Surface
+          750: '#35271E', // Border & Hover
+          700: '#433227', // Subtle Contrast
+          600: '#5C4536',
         },
+        // Radiant Imperial & Antique Gold Palette
         gold: {
-          200: '#F5E4BE',
-          300: '#E8D09B',
-          400: '#D7BA78',
-          500: '#C59B51', // Swatch Antique Gold
-          600: '#A88039',
-          700: '#8A6628',
-          800: '#694B1B',
+          100: '#FCF6E8',
+          200: '#F5E4BE', // Light Champagne Silk
+          300: '#E8D09B', // Bright Warm Gold
+          400: '#D7BA78', // Classic Golden Radiance
+          500: '#C59B51', // True Antique Gold
+          600: '#A88039', // Deep Burnished Gold
+          700: '#8A6628', // Dark Heritage Gold
+          800: '#684C1C',
         },
-        ivory: {
-          50: '#FCF9F5',
-          100: '#FAF3EA', // Swatch Warm Cream
-          200: '#EFE5D6',
-          300: '#DFCDB8',
-          400: '#BAA58E',
-          500: '#94806A',
+        // Royal Silk Cream & Warm Ivory
+        cream: {
+          50: '#FFFEFA',
+          100: '#FAF6EE', // Silk Cream
+          200: '#F3ECE0',
+          300: '#E7DEC9',
+          400: '#CFC2A7',
         },
-        mauve: {
-          300: '#E5BAC5',
-          400: '#D1A0AC', // Swatch Dusty Mauve
-          500: '#B6808E',
-          600: '#9B6673',
+        // Auspicious Royal Vermillion Wedding Accent
+        vermillion: {
+          400: '#E25C43',
+          500: '#C84B31',
+          600: '#A83A22',
         },
       },
       fontFamily: {
-        serif: ['var(--font-cinzel)', 'Playfair Display', 'Georgia', 'serif'],
-        sans: ['var(--font-plus-jakarta)', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
+        sans: ['var(--font-outfit)', 'Outfit', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'gold-glow': '0 0 25px -5px rgba(197, 155, 81, 0.35)',
-        'gold-subtle': '0 4px 20px -2px rgba(197, 155, 81, 0.15)',
-        'plum-deep': '0 10px 40px -10px rgba(15, 6, 13, 0.8)',
+        'gold-glow': '0 0 30px -5px rgba(215, 186, 120, 0.35)',
+        'gold-subtle': '0 4px 20px -2px rgba(197, 155, 81, 0.22)',
+        'gold-card': '0 12px 36px -8px rgba(15, 11, 8, 0.8)',
       },
       backgroundImage: {
-        'gold-gradient': 'linear-gradient(135deg, #E8D09B 0%, #C59B51 50%, #A88039 100%)',
-        'plum-gradient': 'linear-gradient(145deg, #3D1C34 0%, #23101E 100%)',
-        'card-gradient': 'linear-gradient(180deg, rgba(61, 28, 52, 0.7) 0%, rgba(35, 16, 30, 0.85) 100%)',
+        'gold-gradient': 'linear-gradient(135deg, #F5E4BE 0%, #D7BA78 45%, #A88039 100%)',
+        'gold-gradient-subtle': 'linear-gradient(135deg, rgba(245, 228, 190, 0.15) 0%, rgba(215, 186, 120, 0.05) 100%)',
+        'card-gradient': 'linear-gradient(180deg, rgba(32, 24, 17, 0.85) 0%, rgba(23, 17, 12, 0.95) 100%)',
+        'hero-gold': 'radial-gradient(ellipse at top, rgba(215, 186, 120, 0.18) 0%, rgba(15, 11, 8, 0.98) 75%)',
       },
     },
   },

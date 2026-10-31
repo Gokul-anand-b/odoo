@@ -6,21 +6,16 @@ import {
   Scale, 
   Sparkles, 
   UploadCloud, 
-  ShieldCheck, 
   Award, 
   Calendar, 
-  DollarSign, 
-  Users, 
-  FileText, 
-  Layers, 
-  CheckCircle2, 
   Database,
-  ChevronDown
+  Layers,
+  FileText
 } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'matrix' | 'hidden_cost' | 'upload' | 'directory';
-  setActiveTab: (tab: 'matrix' | 'hidden_cost' | 'upload' | 'directory') => void;
+  activeSection: string;
+  setActiveSection: (sec: string) => void;
   onOpenRegisterModal: () => void;
   quotesCount: number;
   vendorsCount: number;
@@ -28,58 +23,58 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  activeTab,
-  setActiveTab,
+  activeSection,
+  setActiveSection,
   onOpenRegisterModal,
   quotesCount,
   vendorsCount,
   awardedCount,
 }) => {
-  const navItems = [
+  const sections = [
     {
-      id: 'matrix' as const,
-      label: 'Quote Comparison Matrix',
-      description: 'Side-by-side bid benchmarking',
+      id: 'matrix',
+      label: 'Comparison Matrix',
+      sub: 'Side-by-side bid analysis',
       icon: Scale,
       badge: `${quotesCount} Bids`,
     },
     {
-      id: 'hidden_cost' as const,
-      label: 'Hidden Cost & Value Auditor',
-      description: 'Signature AI fee extraction',
+      id: 'hidden_costs',
+      label: 'Hidden Fee Auditor',
+      sub: 'True landed cost novelty',
       icon: Sparkles,
       badge: 'Novelty',
-      badgeColor: 'bg-gold-500/20 text-gold-300 border border-gold-500/40',
+      badgeColor: 'bg-gold-500/20 text-gold-300 border border-gold-400/40',
     },
     {
-      id: 'upload' as const,
-      label: 'Upload Quotation & OCR',
-      description: 'PDF ingestion & line extraction',
+      id: 'upload_ocr',
+      label: 'Upload Quote & OCR',
+      sub: 'PDF ingestion & parser',
       icon: UploadCloud,
     },
     {
-      id: 'directory' as const,
-      label: 'Royal Vendor Directory',
-      description: 'Jaipur & Udaipur vetted suppliers',
+      id: 'directory',
+      label: 'Supplier Directory',
+      sub: 'Jaipur & Udaipur partners',
       icon: Building2,
       badge: `${vendorsCount}`,
     },
   ];
 
   return (
-    <aside className="w-72 bg-gradient-to-b from-plum-950 via-plum-900 to-plum-950 border-r border-gold-500/25 flex flex-col justify-between h-screen sticky top-0 shrink-0 z-30 select-none">
-      {/* 1. Brand & Royal Crest */}
+    <aside className="w-72 bg-gradient-to-b from-wedding-950 via-wedding-900 to-wedding-950 border-r border-gold-400/20 flex flex-col justify-between h-screen sticky top-0 shrink-0 z-30 select-none">
+      {/* Brand & Royal Crest */}
       <div>
-        <div className="p-5 border-b border-gold-500/20">
+        <div className="p-5 border-b border-gold-400/20">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gold-gradient p-0.5 shadow-gold-glow flex items-center justify-center shrink-0">
-              <div className="w-full h-full bg-plum-950 rounded-[14px] flex items-center justify-center">
+              <div className="w-full h-full bg-wedding-950 rounded-[14px] flex items-center justify-center">
                 <span className="font-serif font-extrabold text-gold-400 text-xl tracking-wider">WP</span>
               </div>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h1 className="font-serif text-lg font-bold text-ivory-50 tracking-wide">
+                <h1 className="font-serif text-lg font-bold text-cream-100 tracking-wide">
                   WedPilot <span className="text-gold-400">AI</span>
                 </h1>
               </div>
@@ -89,37 +84,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {/* Active Wedding Selector Badge */}
-          <div className="mt-4 p-3 rounded-xl bg-plum-850/90 border border-gold-500/30 shadow-inner">
+          {/* Active Wedding Context Pill */}
+          <div className="mt-4 p-3 rounded-xl bg-wedding-850 border border-gold-400/30 shadow-inner">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] uppercase font-bold tracking-widest text-gold-400">Active Operation</span>
+              <span className="text-[9px] uppercase font-bold tracking-widest text-gold-400">Live Operation</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>
-            <p className="text-xs font-serif font-bold text-ivory-100 mt-1 truncate">
+            <p className="text-xs font-serif font-bold text-cream-100 mt-1 truncate">
               Samar & Alizeh Royal Wedding
             </p>
-            <p className="text-[10px] text-ivory-300">City Palace, Udaipur • 550 Guests</p>
+            <p className="text-[10px] text-cream-300">City Palace, Udaipur • 550 Guests</p>
           </div>
         </div>
 
-        {/* 2. Primary Navigation */}
+        {/* Navigation Links */}
         <div className="p-3 space-y-1.5">
           <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-gold-400/70">
-            Feature 2: Vendor Intelligence
+            Vendor Intelligence
           </span>
 
-          {navItems.map((item) => {
+          {sections.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = activeSection === item.id;
 
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => setActiveSection(item.id)}
                 className={`w-full p-3 rounded-xl text-left flex items-start gap-3 transition-all relative ${
                   isActive
-                    ? 'bg-plum-800/90 border border-gold-400 shadow-gold-subtle text-ivory-50'
-                    : 'text-ivory-300 hover:text-ivory-100 hover:bg-plum-850/60 border border-transparent'
+                    ? 'bg-wedding-800 border border-gold-400 shadow-gold-subtle text-cream-50'
+                    : 'text-cream-300 hover:text-cream-100 hover:bg-wedding-850/60 border border-transparent'
                 }`}
               >
                 {isActive && (
@@ -127,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
                 <div
                   className={`p-2 rounded-lg shrink-0 ${
-                    isActive ? 'bg-gold-500 text-plum-950 font-bold shadow' : 'bg-plum-900 text-gold-400'
+                    isActive ? 'bg-gold-500 text-wedding-950 font-bold shadow' : 'bg-wedding-900 text-gold-400'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -138,14 +133,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {item.badge && (
                       <span
                         className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
-                          item.badgeColor || 'bg-plum-800 text-ivory-300'
+                          item.badgeColor || 'bg-wedding-850 text-cream-300 border border-gold-400/20'
                         }`}
                       >
                         {item.badge}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-ivory-300/70 truncate mt-0.5">{item.description}</p>
+                  <p className="text-[10px] text-cream-300/70 truncate mt-0.5">{item.sub}</p>
                 </div>
               </button>
             );
@@ -153,12 +148,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* 3. Bottom Operational Readiness & Supabase Status */}
-      <div className="p-4 border-t border-gold-500/20 space-y-3 bg-plum-950/70">
-        <div className="p-3 rounded-xl bg-plum-900/60 border border-gold-500/20 flex items-center justify-between text-[11px]">
+      {/* Supabase Status & Action */}
+      <div className="p-4 border-t border-gold-400/20 space-y-3 bg-wedding-950/80">
+        <div className="p-3 rounded-xl bg-wedding-900 border border-gold-400/25 flex items-center justify-between text-[11px]">
           <div className="flex items-center gap-2">
             <Database className="w-3.5 h-3.5 text-gold-400" />
-            <span className="text-ivory-200">Supabase DB</span>
+            <span className="text-cream-200">Supabase DB</span>
           </div>
           <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -166,14 +161,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-ivory-300 px-1">
-          <span>Awarded Contracts</span>
+        <div className="flex items-center justify-between text-xs text-cream-300 px-1">
+          <span>Awarded Contracts:</span>
           <span className="font-bold text-emerald-400">{awardedCount} Locked</span>
         </div>
 
         <button
           onClick={onOpenRegisterModal}
-          className="w-full py-2.5 rounded-xl bg-gold-gradient text-plum-950 font-bold text-xs shadow-gold-subtle hover:brightness-110 transition flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl bg-gold-gradient text-wedding-950 font-bold text-xs shadow-gold-subtle hover:brightness-110 transition flex items-center justify-center gap-2"
         >
           <Building2 className="w-3.5 h-3.5" />
           Onboard New Supplier
