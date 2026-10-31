@@ -1,14 +1,8 @@
 """
-API URL Configuration for WedPilot AI.
+API URL Configuration for Eternelle (WedPilot AI).
 
 This provides the general REST API routing foundation.
-Feature-specific endpoints will be added by individual developers.
-
-Convention:
-    Each feature module should create its own urls.py and be included here.
-    Example:
-        path('weddings/', include('api.weddings.urls')),
-        path('vendors/', include('api.vendors.urls')),
+All endpoints are available under /api/v1/
 """
 
 from django.urls import path, include
@@ -25,7 +19,9 @@ urlpatterns = [
 
     # Feature-specific endpoints:
     path('', include('wedding_blueprint.urls')),
+    path('', include('vendor_intelligence.urls')),
     path('disruptions/', include('disruption_engine.urls')),
     path('', include('client_management.urls')),
     path('operations/', include('operations.urls')),
+    path('command-centre/', include('command_centre.urls')),
 ]

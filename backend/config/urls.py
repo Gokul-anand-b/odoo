@@ -19,11 +19,15 @@ urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
 
-    # API v1
+    # API v1 — primary (wedding blueprint + disruption engine + health)
     path('api/v1/', include('api.urls')),
 
+    # Vendor intelligence API — accessible via both prefixes
+    # Command Centre API
+    path('api/command-centre/', include('command_centre.urls')),
     # Vendor intelligence API (keep existing frontend endpoints available)
     path('api/vendor-intelligence/', include('vendor_intelligence.urls')),
+    path('api/vendors/', include('vendor_intelligence.urls')),
     path('api/', include('vendor_intelligence.urls')),
 
     # API Documentation

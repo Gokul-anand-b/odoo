@@ -25,7 +25,7 @@ DEBUG = config('DJANGO_DEBUG', default='True').lower() == 'true'
 
 ALLOWED_HOSTS = config(
     'DJANGO_ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
+    default='localhost,127.0.0.1,testserver,*',
 ).split(',')
 
 
@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'disruption_engine',
     'client_management',
     'operations',
+    'command_centre',
 ]
 
 MIDDLEWARE = [
@@ -87,18 +88,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# PostgreSQL configuration — credentials to be provided by the team
-# Using SQLite as fallback for development
+# Database — Supabase PostgreSQL (pooler) default across all team machines
+_db_engine = config('DB_ENGINE', default='django.db.backends.postgresql')
+_is_postgres = 'postgresql' in _db_engine
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': config('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default=''),
-        'PORT': config('DB_PORT', default=''),
+        'ENGINE': _db_engine,
+        'NAME': config('DB_NAME', default='postgres'),
+        'USER': config('DB_USER', default='postgres.ccjaplmejbjhlgdxwvss'),
+        'PASSWORD': config('DB_PASSWORD', default='Gokul@14102005'),
+        'HOST': config('DB_HOST', default='aws-1-eu-west-3.pooler.supabase.com'),
+        'PORT': config('DB_PORT', default='6543'),
+        **({'OPTIONS': {'sslmode': 'require'}} if _is_postgres else {}),
     }
 }
 
@@ -169,6 +171,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # CORS configuration
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:3000,http://127.0.0.1:3000',

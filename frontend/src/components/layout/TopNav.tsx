@@ -171,13 +171,13 @@ export default function TopNav() {
             <motion.div initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 260 }}
               className="fixed left-0 top-0 h-full w-72 z-50 lg:hidden flex flex-col"
-              style={{ background: 'linear-gradient(175deg, #493044, #2B1B28, #1C1018)' }}>
+              style={{ background: 'linear-gradient(175deg, #1A130D, #140E09, #080503)', borderRight: '1px solid rgba(215, 186, 120, 0.25)' }}>
               <div className="flex items-center justify-between px-5 pt-6 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(145deg, #B99A65, #D4BA8A)' }}>
                     <Crown className="w-5 h-5 text-white" />
                   </div>
-                  <h1 className="font-display text-lg font-bold" style={{ color: '#F0E8EE' }}>WedPilot <span className="text-gold">AI</span></h1>
+                  <h1 className="font-display text-lg font-bold" style={{ color: '#F0E8EE' }}>Etern<span className="text-gold">elle</span></h1>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg cursor-pointer" style={{ color: '#C9A6B2' }}>
                   <X className="w-5 h-5" />

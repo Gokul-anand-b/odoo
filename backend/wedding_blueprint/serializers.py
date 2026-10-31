@@ -34,22 +34,31 @@ class BlueprintTaskSerializer(serializers.ModelSerializer):
 
 
 class VendorRequirementSerializer(serializers.ModelSerializer):
+    wedding_id = serializers.UUIDField(source='blueprint.wedding_id', read_only=True)
+    wedding_title = serializers.CharField(source='blueprint.wedding.title', read_only=True)
+    couple_names = serializers.CharField(source='blueprint.wedding.couple_names', read_only=True)
+
     class Meta:
         model = VendorRequirement
         fields = [
-            'id', 'blueprint', 'category', 'service_name',
-            'headcount_capacity', 'allocated_budget', 'target_booking_deadline',
-            'status', 'deliverables', 'created_at'
+            'id', 'blueprint', 'wedding_id', 'wedding_title', 'couple_names',
+            'category', 'service_name', 'headcount_capacity', 'allocated_budget',
+            'target_booking_deadline', 'status', 'deliverables', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
 
 class ResourceRequirementSerializer(serializers.ModelSerializer):
+    wedding_id = serializers.UUIDField(source='blueprint.wedding_id', read_only=True)
+    wedding_title = serializers.CharField(source='blueprint.wedding.title', read_only=True)
+    couple_names = serializers.CharField(source='blueprint.wedding.couple_names', read_only=True)
+
     class Meta:
         model = ResourceRequirement
         fields = [
-            'id', 'blueprint', 'resource_name', 'quantity', 'unit',
-            'allocated_for_event', 'importance', 'created_at'
+            'id', 'blueprint', 'wedding_id', 'wedding_title', 'couple_names',
+            'resource_name', 'quantity', 'unit', 'allocated_for_event',
+            'importance', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
