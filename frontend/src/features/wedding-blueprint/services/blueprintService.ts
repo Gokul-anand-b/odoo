@@ -2,6 +2,20 @@ import { Wedding, WeddingBlueprint, BlueprintTask, WeddingEvent } from '../types
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
 
+/** Safely parse JSON — throws a clean message if the server returned HTML (e.g. 404 page) */
+async function safeJson(res: Response) {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    throw new Error(
+      `Server returned non-JSON response (status ${res.status}). ` +
+      `Make sure the Django backend is running on ${API_BASE_URL.replace('/api/v1', '')}.\n` +
+      `Preview: ${text.slice(0, 120)}`
+    );
+  }
+  return res.json();
+}
+
 export const blueprintApi = {
   // Fetch all weddings
   getWeddings: async (): Promise<Wedding[]> => {
@@ -9,7 +23,7 @@ export const blueprintApi = {
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to fetch weddings');
     if (!Array.isArray(json.data)) throw new Error('The weddings response was invalid');
     return json.data;
@@ -22,7 +36,7 @@ export const blueprintApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to create wedding setup');
     return json.data;
   },
@@ -32,7 +46,7 @@ export const blueprintApi = {
     const res = await fetch(`${API_BASE_URL}/weddings/${id}/`, {
       cache: 'no-store',
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to fetch wedding details');
     return json.data;
   },
@@ -44,7 +58,7 @@ export const blueprintApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ force_regenerate: forceRegenerate }),
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to generate blueprint');
     return json.data;
   },
@@ -54,7 +68,7 @@ export const blueprintApi = {
     const res = await fetch(`${API_BASE_URL}/weddings/${weddingId}/blueprint/`, {
       cache: 'no-store',
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to fetch blueprint');
     return json.data;
   },
@@ -65,19 +79,19 @@ export const blueprintApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to approve blueprint');
     return json.data;
   },
 
-  // Update a task (marks as manually edited so it is preserved during regeneration)
+  // Update a task
   updateTask: async (taskId: string, data: Partial<BlueprintTask>): Promise<BlueprintTask> => {
     const res = await fetch(`${API_BASE_URL}/tasks/${taskId}/`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to update task');
     return json.data;
   },
@@ -89,7 +103,7 @@ export const blueprintApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event),
     });
-    const json = await res.json();
+    const json = await safeJson(res);
     if (!res.ok) throw new Error(json.message || 'Failed to add event');
     return json.data;
   },
