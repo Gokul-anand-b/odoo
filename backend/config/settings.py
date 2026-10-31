@@ -25,7 +25,7 @@ DEBUG = config('DJANGO_DEBUG', default='True').lower() == 'true'
 
 ALLOWED_HOSTS = config(
     'DJANGO_ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
+    default='localhost,127.0.0.1,testserver,*',
 ).split(',')
 
 
