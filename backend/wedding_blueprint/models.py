@@ -101,6 +101,8 @@ class WeddingEvent(TimeStampedModel):
     dress_code = models.CharField(max_length=120, blank=True, default='Plum & Gold Royal Ethnic')
     coordinator_name = models.CharField(max_length=120, blank=True, default='Lead Coordinator')
     notes = models.TextField(blank=True, default='')
+    is_fixed_time = models.BooleanField(default=False)
+    recovery_move_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
         ordering = ['event_order', 'date', 'start_time']

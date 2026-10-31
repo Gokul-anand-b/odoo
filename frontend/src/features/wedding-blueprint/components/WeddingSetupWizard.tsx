@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Calendar,
   Users,
   IndianRupee,
   MapPin,
   Sparkles,
-  Layers,
   CheckCircle2,
   Plus,
   Trash2,
@@ -20,6 +19,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Wedding, WeddingEvent } from '../types/blueprint.types';
+import { blueprintApi } from '../services/blueprintService';
 
 interface WeddingSetupWizardProps {
   onSuccess: (createdWedding: Wedding) => void;
@@ -107,6 +107,13 @@ const SERVICE_OPTIONS = [
   { id: 'fireworks', label: 'Synchronized Eco Cold-Pyrotechnics', icon: '✨', cat: 'Production' },
 ];
 
+const toDateInputValue = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetupWizardProps) {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -169,13 +176,30 @@ export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetup
     },
   ]);
 
-  const updateField = (field: string, value: any) => {
+  const updateField = <K extends keyof typeof formData,>(field: K, value: (typeof formData)[K]) => {
+    if (field === 'start_date' && typeof value === 'string') {
+      const currentStart = new Date(`${formData.start_date}T00:00:00`);
+      const nextStart = new Date(`${value}T00:00:00`);
+      const dayShift = Math.round((nextStart.getTime() - currentStart.getTime()) / 86400000);
+      if (Number.isFinite(dayShift)) {
+        setEvents((current) => current.map((event) => {
+          const shiftedDate = new Date(`${event.date}T00:00:00`);
+          shiftedDate.setDate(shiftedDate.getDate() + dayShift);
+          return { ...event, date: toDateInputValue(shiftedDate) };
+        }));
+      }
+    } else if (field === 'end_date' && typeof value === 'string') {
+      setEvents((current) => current.map((event) => (
+        event.date > value ? { ...event, date: value } : event
+      )));
+    }
+
     setFormData((prev) => {
       const next = { ...prev, [field]: value };
       // Auto calculate duration if dates change
       if (field === 'start_date' || field === 'end_date') {
-        const d1 = new Date(field === 'start_date' ? value : prev.start_date);
-        const d2 = new Date(field === 'end_date' ? value : prev.end_date);
+        const d1 = new Date(field === 'start_date' ? String(value) : prev.start_date);
+        const d2 = new Date(field === 'end_date' ? String(value) : prev.end_date);
         if (!isNaN(d1.getTime()) && !isNaN(d2.getTime()) && d2 >= d1) {
           const diffTime = Math.abs(d2.getTime() - d1.getTime());
           next.duration_days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
@@ -198,7 +222,7 @@ export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetup
   };
 
   const addEvent = () => {
-    const nextOrder = events.length + 1;
+    const nextOrder = Math.max(0, ...events.map((event) => event.event_order)) + 1;
     setEvents([
       ...events,
       {
@@ -217,16 +241,34 @@ export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetup
   };
 
   const removeEvent = (index: number) => {
-    setEvents(events.filter((_, idx) => idx !== index));
+    setEvents(events
+      .filter((_, idx) => idx !== index)
+      .map((event, idx) => ({ ...event, event_order: idx + 1 })));
   };
 
-  const updateEventField = (index: number, field: keyof WeddingEvent, value: any) => {
+  const updateEventField = <K extends keyof WeddingEvent,>(
+    index: number,
+    field: K,
+    value: WeddingEvent[K],
+  ) => {
     const updated = [...events];
     updated[index] = { ...updated[index], [field]: value };
     setEvents(updated);
   };
 
   const handleSubmit = async () => {
+    if (formData.end_date < formData.start_date) {
+      setError('The wedding end date cannot be earlier than its start date.');
+      return;
+    }
+    const outOfRangeEvent = events.find(
+      (event) => event.date < formData.start_date || event.date > formData.end_date,
+    );
+    if (outOfRangeEvent) {
+      setError(`${outOfRangeEvent.name} must fall within the wedding date range.`);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
@@ -235,20 +277,10 @@ export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetup
         events,
       };
 
-      const res = await fetch('http://127.0.0.1:8000/api/v1/weddings/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || 'Failed to submit wedding setup');
-      }
-
-      onSuccess(json.data);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while creating wedding setup');
+      const wedding = await blueprintApi.createWedding(payload);
+      onSuccess(wedding);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while creating wedding setup');
     } finally {
       setSubmitting(false);
     }
@@ -683,6 +715,8 @@ export default function WeddingSetupWizard({ onSuccess, onCancel }: WeddingSetup
                     <input
                       type="date"
                       value={ev.date}
+                      min={formData.start_date}
+                      max={formData.end_date}
                       onChange={(e) => updateEventField(index, 'date', e.target.value)}
                       className="w-full px-2.5 py-1.5 rounded-lg border border-[rgba(185,154,101,0.2)] bg-white text-xs"
                     />
