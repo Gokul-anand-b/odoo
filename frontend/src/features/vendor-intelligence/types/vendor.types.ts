@@ -92,3 +92,34 @@ export interface Quotation {
   overtimeHourlyRate: number;
   advancePaymentPercentage: number;
 }
+
+
+export interface VendorRequirement {
+  id: string;
+  blueprint: string;
+  weddingId?: string;
+  weddingTitle?: string;
+  coupleNames?: string;
+  category: string;
+  serviceName: string;
+  headcountCapacity: number;
+  allocatedBudget: number;
+  targetBookingDeadline?: string | null;
+  status: string;
+  deliverables: string[];
+  createdAt?: string;
+}
+
+export interface ResourceRequirement {
+  id: string;
+  blueprint: string;
+  weddingId?: string;
+  weddingTitle?: string;
+  coupleNames?: string;
+  resourceName: string;
+  quantity: number;
+  unit: string;
+  allocatedForEvent: string;
+  importance: string;
+  createdAt?: string;
+}

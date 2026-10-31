@@ -8,6 +8,8 @@ from .views import (
     BlueprintDetailAPIView,
     BlueprintApproveAPIView,
     TaskUpdateAPIView,
+    VendorRequirementListAPIView,
+    ResourceRequirementListAPIView,
 )
 
 app_name = 'wedding_blueprint'
@@ -28,4 +30,8 @@ urlpatterns = [
 
     # Task Management
     path('tasks/<uuid:pk>/', TaskUpdateAPIView.as_view(), name='task-update'),
+
+    # Derived Blueprint Requirements (Vendor & Resource)
+    path('vendor-requirements/', VendorRequirementListAPIView.as_view(), name='vendor-requirements-list'),
+    path('resource-requirements/', ResourceRequirementListAPIView.as_view(), name='resource-requirements-list'),
 ]

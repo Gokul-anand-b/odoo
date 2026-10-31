@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Building2, User, Phone, Mail, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { X, Building2, User, Phone, Mail, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-react';
 import { Vendor, VendorCategory, VendorTier } from '../types/vendor.types';
+import { quotationService } from '../services/quotationService';
 
 interface RegisterVendorModalProps {
   isOpen: boolean;
@@ -37,205 +38,212 @@ export const RegisterVendorModal: React.FC<RegisterVendorModalProps> = ({
   const [email, setEmail] = useState('');
   const [experienceYears, setExperienceYears] = useState(8);
   const [specialties, setSpecialties] = useState('Royal Hospitality, Live Food Theatres, Palace Logistics');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const newVendor: Vendor = {
-      id: `v-${Date.now().toString().slice(-4)}`,
-      name,
-      category,
-      tier,
-      rating: 4.8,
-      reviewCount: 1,
-      city,
-      contactPerson,
-      phone,
-      email,
-      experienceYears: Number(experienceYears),
-      completedWeddingsCount: 1,
-      verified: true,
-      specialties: specialties.split(',').map((s) => s.trim()).filter(Boolean),
-    };
+    setIsSubmitting(true);
+    setErrorMsg(null);
 
-    onAddVendor(newVendor);
-    onClose();
+    try {
+      const vendorData: Partial<Vendor> = {
+        name: name.trim(),
+        category,
+        tier,
+        rating: 4.8,
+        reviewCount: 1,
+        city: city.trim(),
+        contactPerson: contactPerson.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        experienceYears: Number(experienceYears) || 5,
+        completedWeddingsCount: 1,
+        verified: true,
+        specialties: specialties.split(',').map((s) => s.trim()).filter(Boolean),
+      };
+
+      const savedVendor = await quotationService.createVendor(vendorData);
+      onAddVendor(savedVendor);
+      onClose();
+    } catch (err: any) {
+      console.error('Error creating vendor in Supabase:', err);
+      setErrorMsg(err?.message || 'Failed to register vendor. Please verify the backend server is running.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-wedding-950/80 backdrop-blur-md animate-fadeIn font-sans">
       <div className="relative w-full max-w-2xl bg-gradient-to-b from-wedding-900 to-wedding-950 border border-gold-400/40 rounded-2xl shadow-2xl p-6 sm:p-8 text-cream-100 overflow-y-auto max-h-[90vh]">
-        <div className="flex items-center justify-between pb-5 border-b border-gold-400/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-wedding-850 rounded-xl border border-gold-400/30 text-gold-400">
-              <Building2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-serif text-gold-300 font-bold">Register Royal Supplier</h2>
-              <p className="text-xs text-cream-300">Onboard verified wedding vendor to The Royal Knot agency ecosystem</p>
-            </div>
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-cream-300 hover:text-gold-400 hover:bg-wedding-800 rounded-lg transition"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Modal Header */}
+        <div className="flex items-center gap-3 pb-4 border-b border-gold-400/20">
+          <div className="p-3 bg-wedding-850 rounded-xl border border-gold-400/40 text-gold-400">
+            <Building2 className="w-6 h-6" />
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-cream-300 hover:text-gold-400 hover:bg-wedding-800 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-serif text-cream-100 font-bold">Register New Supplier Partner</h2>
+            <p className="text-xs text-cream-300">
+              Add verified royal hospitality, catering, floral, and cinema suppliers directly to Supabase.
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        {errorMsg && (
+          <div className="mt-4 p-3 bg-red-950/80 border border-red-500/40 rounded-xl text-red-200 text-xs">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-xs">
+          {/* Supplier Name */}
+          <div>
+            <label className="block text-cream-200 font-medium mb-1">Company / Brand Name *</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Maharani Jewels & Heritage Florals"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
+            />
+          </div>
+
+          {/* Category & Tier Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Company Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Maharana Imperial Banquets"
-                className="w-full px-4 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 focus:outline-none text-sm placeholder:text-cream-300/40"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Service Category *
-              </label>
+              <label className="block text-cream-200 font-medium mb-1">Service Category *</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as VendorCategory)}
-                className="w-full px-4 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 focus:outline-none text-sm text-cream-100"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
               >
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat} className="bg-wedding-900 text-cream-100">
-                    {cat}
-                  </option>
+                  <option key={cat} value={cat} className="bg-wedding-950">{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-cream-200 font-medium mb-1">Curation Tier *</label>
+              <select
+                value={tier}
+                onChange={(e) => setTier(e.target.value as VendorTier)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
+              >
+                {TIERS.map((t) => (
+                  <option key={t} value={t} className="bg-wedding-950">{t}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* City & Experience */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Quality Tier
-              </label>
-              <select
-                value={tier}
-                onChange={(e) => setTier(e.target.value as VendorTier)}
-                className="w-full px-4 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm text-cream-100"
-              >
-                {TIERS.map((t) => (
-                  <option key={t} value={t} className="bg-wedding-900 text-cream-100">
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                City / Base
-              </label>
+              <label className="block text-cream-200 font-medium mb-1">Base City / Headquarters</label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Experience (Years)
-              </label>
+              <label className="block text-cream-200 font-medium mb-1">Years of Royal Experience</label>
               <input
                 type="number"
+                min={1}
+                max={50}
                 value={experienceYears}
                 onChange={(e) => setExperienceYears(Number(e.target.value))}
-                min={1}
-                className="w-full px-4 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Contact Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Contact Person
-              </label>
+              <label className="block text-cream-200 font-medium mb-1">Lead Contact Person</label>
               <input
                 type="text"
+                placeholder="Manager / Proprietor"
                 value={contactPerson}
                 onChange={(e) => setContactPerson(e.target.value)}
-                placeholder="e.g. Raghuvir Rathore"
-                className="w-full px-3 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Phone Number
-              </label>
+              <label className="block text-cream-200 font-medium mb-1">Official Phone</label>
               <input
                 type="text"
+                placeholder="+91 98XXX XXXXX"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91 98290 XXXXX"
-                className="w-full px-3 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-                Official Email
-              </label>
+              <label className="block text-cream-200 font-medium mb-1">Official Email</label>
               <input
                 type="email"
+                placeholder="contact@supplier.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@vendor.com"
-                className="w-full px-3 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
               />
             </div>
           </div>
 
+          {/* Specialties / Tags */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gold-400 mb-1.5">
-              Specialties & Royal Offerings (Comma Separated)
-            </label>
-            <textarea
-              rows={2}
+            <label className="block text-cream-200 font-medium mb-1">Key Specialties (comma separated)</label>
+            <input
+              type="text"
               value={specialties}
               onChange={(e) => setSpecialties(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-wedding-950 border border-gold-400/30 focus:border-gold-400 text-sm"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-wedding-950 border border-gold-400/30 text-cream-100 focus:border-gold-400 focus:outline-none"
             />
           </div>
 
-          <div className="p-3 bg-wedding-850 border border-gold-400/20 rounded-xl flex items-center gap-3 text-xs text-cream-200">
-            <ShieldCheck className="w-5 h-5 text-gold-400 shrink-0" />
-            <span>Automatic compliance check: Rajasthan Tourism Board license & FSSAI / safety accreditation flagged upon entry.</span>
+          {/* Verification Badge Notice */}
+          <div className="p-3 rounded-xl bg-wedding-850/60 border border-gold-400/20 flex items-center gap-2.5 text-xs text-cream-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Suppliers registered here will immediately be saved to Supabase and become available for quotation analysis.</span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gold-400/20">
+          {/* Form Actions */}
+          <div className="pt-4 flex justify-end gap-3 border-t border-wedding-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-gold-400/30 text-cream-200 hover:bg-wedding-850 text-sm transition"
+              disabled={isSubmitting}
+              className="px-4 py-2.5 rounded-xl bg-wedding-850 text-cream-300 hover:text-cream-100 hover:bg-wedding-800 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-gold-gradient text-wedding-950 font-bold text-sm hover:brightness-110 shadow-gold-subtle transition flex items-center gap-2"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D4BA8A] to-[#B99A65] text-[#2E1F2A] font-bold shadow-gold-subtle hover:brightness-110 transition flex items-center gap-1.5"
             >
-              <CheckCircle2 className="w-4 h-4" />
-              Complete Registration
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{isSubmitting ? 'Saving to Database...' : 'Register in Supabase'}</span>
             </button>
           </div>
         </form>

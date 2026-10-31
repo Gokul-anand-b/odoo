@@ -5,13 +5,15 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils import timezone
 from common.utils import success_response, error_response
-from .models import Wedding, WeddingEvent, WeddingBlueprint, BlueprintTask
+from .models import Wedding, WeddingEvent, WeddingBlueprint, BlueprintTask, VendorRequirement, ResourceRequirement
 from .serializers import (
     WeddingSerializer,
     WeddingCreateWithEventsSerializer,
     WeddingEventSerializer,
     WeddingBlueprintSerializer,
     BlueprintTaskSerializer,
+    VendorRequirementSerializer,
+    ResourceRequirementSerializer,
 )
 from .services.blueprint_service import BlueprintService
 
@@ -188,3 +190,30 @@ class TaskUpdateAPIView(APIView):
             return error_response(message='Invalid task update', errors=serializer.errors)
         serializer.save()
         return success_response(data=serializer.data, message='Task updated and preserved successfully')
+
+
+class VendorRequirementListAPIView(APIView):
+    """List vendor requirements across weddings or filter by wedding_id / category."""
+
+    def get(self, request):
+        wedding_id = request.query_params.get('wedding_id')
+        category = request.query_params.get('category')
+        qs = VendorRequirement.objects.select_related('blueprint__wedding').all()
+        if wedding_id:
+            qs = qs.filter(blueprint__wedding_id=wedding_id)
+        if category and category != 'All':
+            qs = qs.filter(category=category)
+        serializer = VendorRequirementSerializer(qs, many=True)
+        return success_response(data=serializer.data, message='Vendor requirements retrieved successfully')
+
+
+class ResourceRequirementListAPIView(APIView):
+    """List physical resource requirements across weddings or filter by wedding_id."""
+
+    def get(self, request):
+        wedding_id = request.query_params.get('wedding_id')
+        qs = ResourceRequirement.objects.select_related('blueprint__wedding').all()
+        if wedding_id:
+            qs = qs.filter(blueprint__wedding_id=wedding_id)
+        serializer = ResourceRequirementSerializer(qs, many=True)
+        return success_response(data=serializer.data, message='Resource requirements retrieved successfully')
