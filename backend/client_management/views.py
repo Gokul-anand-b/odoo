@@ -28,12 +28,46 @@ class WeddingRequestListCreateAPIView(APIView):
         queryset = WeddingRequest.objects.select_related('customer', 'decided_by').prefetch_related('activities')
         if not request.user.is_staff:
             queryset = queryset.filter(customer=request.user)
-        return Response(WeddingRequestSerializer(queryset, many=True).data)
+        unique_requests = []
+        seen = set()
+        for wedding_request in queryset:
+            key = (
+                wedding_request.customer_id,
+                wedding_request.wedding_name.strip().casefold(),
+                wedding_request.wedding_date,
+                wedding_request.location.strip().casefold(),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            unique_requests.append(wedding_request)
+        return Response(WeddingRequestSerializer(
+            unique_requests,
+            many=True,
+            context={'request': request},
+        ).data)
 
     @transaction.atomic
     def post(self, request):
         serializer = WeddingRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        existing = WeddingRequest.objects.filter(
+            customer=request.user,
+            wedding_name__iexact=data['wedding_name'].strip(),
+            wedding_date=data['wedding_date'],
+            location__iexact=data['location'].strip(),
+            status__in=[
+                RequestStatus.PENDING_APPROVAL,
+                RequestStatus.CHANGES_REQUESTED,
+                RequestStatus.APPROVED,
+            ],
+        ).order_by('-created_at').first()
+        if existing:
+            return Response(
+                WeddingRequestSerializer(existing, context={'request': request}).data,
+                status=status.HTTP_200_OK,
+            )
         wedding_request = serializer.save(customer=request.user)
         record_activity(wedding_request, request.user, 'submitted', 'Wedding request submitted for approval.')
         return Response(WeddingRequestSerializer(wedding_request).data, status=status.HTTP_201_CREATED)

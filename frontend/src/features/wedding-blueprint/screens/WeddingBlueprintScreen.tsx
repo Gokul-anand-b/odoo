@@ -32,6 +32,7 @@ import EventPlanningTimeline from '../components/EventPlanningTimeline';
 import AllocationsPanel from '../components/AllocationsPanel';
 import { authApi } from '@/features/client-management/services/authService';
 import { clientManagementApi, WeddingRequest } from '@/features/client-management/services/clientManagementService';
+import Link from 'next/link';
 
 /* ─── Hero Image Carousel ─── */
 const HERO_SLIDES = [
@@ -206,7 +207,12 @@ export default function WeddingBlueprintScreen() {
       const list = await blueprintApi.getWeddings();
       setWeddings(list);
       if (list.length > 0) {
-        const wedding = list.find((item) => item.id === selectedWeddingId.current) ?? list[0];
+        const requestedWeddingId = typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('weddingId')
+          : null;
+        const wedding = list.find((item) => item.id === requestedWeddingId)
+          ?? list.find((item) => item.id === selectedWeddingId.current)
+          ?? list[0];
         selectedWeddingId.current = wedding.id;
         setSelectedWedding(wedding);
         if (wedding.blueprint) {
@@ -352,11 +358,11 @@ export default function WeddingBlueprintScreen() {
         <section className="card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-[#B99A65] font-semibold">Digital agreement</p>
-            <h2 className="font-display text-xl font-bold text-[#493044] mt-1">Your service agreement is ready</h2>
-            <p className="text-sm text-[#766873] mt-1">Review the document before signing. It is private to your approved wedding.</p>
+            <h2 className="font-display text-xl font-bold text-[#493044] mt-1">Your wedding invoice & agreement is ready</h2>
+            <p className="text-sm text-[#766873] mt-1">Review the invoice-style blueprint and uploaded document, then sign it digitally.</p>
           </div>
-          {customerRequest.agreement_document
-            ? <a href={customerRequest.agreement_document} target="_blank" rel="noreferrer" className="rounded-lg bg-[#493044] text-white px-4 py-2 text-sm font-semibold">Open agreement</a>
+          {customerRequest.agreement_id && customerRequest.approved_wedding_id
+            ? <Link href={`/operations/agreements?agreementId=${customerRequest.agreement_id}&weddingId=${customerRequest.approved_wedding_id}`} className="rounded-lg bg-[#493044] text-white px-4 py-2 text-sm font-semibold">View invoice & sign</Link>
             : <span className="text-sm text-[#766873]">Admin is preparing the document.</span>}
         </section>
       )}

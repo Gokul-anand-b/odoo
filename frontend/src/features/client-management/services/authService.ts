@@ -18,6 +18,9 @@ export type AuthUser = {
   role: 'admin' | 'customer' | 'vendor';
 };
 
+let currentUserCache: { user: AuthUser; expiresAt: number } | null = null;
+let currentUserRequest: Promise<AuthUser> | null = null;
+
 function toAuthUser(user: { id: string; email?: string; user_metadata?: Record<string, unknown>; app_metadata?: Record<string, unknown> }): AuthUser {
   const metadata = user.app_metadata?.role ? user.app_metadata : user.user_metadata ?? {};
   const metadataRole = typeof metadata.role === 'string' ? metadata.role : '';
@@ -45,11 +48,29 @@ async function resolveBackendRole(fallback: AuthUser) {
   return backendUser.role ? { ...fallback, role: backendUser.role } : fallback;
 }
 
+async function getCurrentUser(): Promise<AuthUser> {
+  if (currentUserCache && currentUserCache.expiresAt > Date.now()) return currentUserCache.user;
+  if (currentUserRequest) return currentUserRequest;
+  currentUserRequest = (async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw new Error('Not authenticated.');
+    const user = await resolveBackendRole(toAuthUser(data.user));
+    currentUserCache = { user, expiresAt: Date.now() + 30_000 };
+    return user;
+  })();
+  try {
+    return await currentUserRequest;
+  } finally {
+    currentUserRequest = null;
+  }
+}
+
 export const authApi = {
   async login(email: string, password: string, expectedRole?: AuthUser['role']) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) throw new Error(error?.message ?? 'Unable to sign in.');
     const user = await resolveBackendRole(toAuthUser(data.user));
+    currentUserCache = { user, expiresAt: Date.now() + 30_000 };
     if (expectedRole && user.role !== expectedRole) {
       await supabase.auth.signOut();
       throw new Error(`This account is not registered as ${expectedRole}.`);
@@ -78,13 +99,12 @@ export const authApi = {
     return resolveBackendRole(toAuthUser(data.user));
   },
   async me() {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw new Error('Not authenticated.');
-    return resolveBackendRole(toAuthUser(data.user));
+    return getCurrentUser();
   },
   async logout() {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
+    currentUserCache = null;
   },
 };
 

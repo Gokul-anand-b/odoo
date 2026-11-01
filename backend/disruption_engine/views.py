@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -31,7 +32,16 @@ def _record_history(incident, action, message, **details):
 
 class DisruptionWeddingListAPIView(APIView):
     def get(self, request):
-        weddings = Wedding.objects.filter(is_deleted=False).prefetch_related('events')
+        event_fields = [
+            'id', 'wedding_id', 'name', 'event_order', 'date', 'start_time',
+            'end_time', 'venue_space', 'expected_guests', 'is_fixed_time',
+            'recovery_move_cost',
+        ]
+        weddings = Wedding.objects.filter(is_deleted=False).only(
+            'id', 'title', 'couple_names', 'start_date', 'end_date',
+        ).prefetch_related(
+            Prefetch('events', queryset=WeddingEvent.objects.only(*event_fields)),
+        )
         return success_response(
             data=WeddingSummarySerializer(weddings, many=True).data,
             message='Weddings retrieved successfully',
@@ -41,7 +51,12 @@ class DisruptionWeddingListAPIView(APIView):
 class IncidentListCreateAPIView(APIView):
     def get(self, request, wedding_id):
         wedding = get_object_or_404(Wedding, id=wedding_id, is_deleted=False)
-        incidents = Incident.objects.filter(wedding=wedding).select_related('affected_event')
+        incidents = Incident.objects.filter(wedding=wedding).select_related('affected_event').only(
+            'id', 'wedding_id', 'title', 'incident_type', 'description',
+            'affected_event_id', 'vendor_impact', 'delay_minutes',
+            'cost_per_minute', 'status', 'created_at', 'updated_at',
+            'affected_event__id', 'affected_event__name',
+        )
         return success_response(
             data=IncidentSerializer(incidents, many=True).data,
             message='Incidents retrieved successfully',
@@ -169,7 +184,9 @@ class IncidentHistoryAPIView(APIView):
 class WeddingDependencyListCreateAPIView(APIView):
     def get(self, request, wedding_id):
         wedding = get_object_or_404(Wedding, id=wedding_id, is_deleted=False)
-        dependencies = EventDependency.objects.filter(wedding=wedding)
+        dependencies = EventDependency.objects.filter(wedding=wedding).only(
+            'id', 'predecessor_event_id', 'successor_event_id', 'minimum_gap_minutes',
+        )
         return success_response(data=EventDependencySerializer(dependencies, many=True).data)
 
     def post(self, request, wedding_id):

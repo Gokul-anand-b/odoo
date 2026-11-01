@@ -137,8 +137,7 @@ export default function DisruptionEngineScreen() {
         disruptionApi.getDependencies(selectedWeddingId),
       ]);
     }).then((results) => {
-      if (!results) return;
-      if (!active) return;
+      if (!results || !active) return;
       const [incidentResult, dependencyResult] = results;
       if (incidentResult.status === 'fulfilled') setIncidents(incidentResult.value);
       else setError(incidentResult.reason instanceof Error ? incidentResult.reason.message : 'Could not load incidents.');
@@ -153,7 +152,10 @@ export default function DisruptionEngineScreen() {
 
   useEffect(() => {
     if (!selectedIncidentId) return;
-    void Promise.resolve().then(() => refreshHistory(selectedIncidentId));
+    const timer = window.setTimeout(() => {
+      void refreshHistory(selectedIncidentId);
+    }, 350);
+    return () => window.clearTimeout(timer);
   }, [selectedIncidentId, refreshHistory]);
 
   const createIncident = async (input: IncidentInput): Promise<boolean> => {

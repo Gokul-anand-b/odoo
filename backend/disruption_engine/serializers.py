@@ -13,15 +13,6 @@ class EventSummarySerializer(serializers.ModelSerializer):
         ]
 
 
-class WeddingSummarySerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    title = serializers.CharField()
-    couple_names = serializers.CharField()
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
-    events = EventSummarySerializer(many=True)
-
-
 class IncidentSerializer(serializers.ModelSerializer):
     wedding_id = serializers.UUIDField(read_only=True)
     affected_event_name = serializers.CharField(source='affected_event.name', read_only=True)
@@ -87,3 +78,12 @@ class EventDependencySerializer(serializers.ModelSerializer):
         if predecessor.id == successor.id:
             raise serializers.ValidationError('An event cannot depend on itself.')
         return attrs
+
+
+class WeddingSummarySerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    title = serializers.CharField()
+    couple_names = serializers.CharField()
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+    events = EventSummarySerializer(many=True)

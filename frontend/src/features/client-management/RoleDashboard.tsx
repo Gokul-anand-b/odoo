@@ -24,7 +24,13 @@ const links: Record<AuthUser['role'], Array<[string, string, string]>> = {
     ['Notifications', '/operations/notifications', 'Review assignment, schedule and payment updates.'],
     ['Profile & settings', '/operations/vendors', 'Update business details and account settings.'],
   ],
-  admin: [['Wedding requests', '/admin/requests', 'Approve, reject, or request changes.'], ['Operations', '/operations', 'Manage agreements, finance, guests, and assignments.'], ['Reports', '/operations', 'Review operational reports and financial summaries.']],
+  admin: [
+    ['Home', '/admin/dashboard', 'Overview of your wedding planning workspace.'],
+    ['Wedding blueprint approvals', '/admin/requests', 'Review and approve customer wedding blueprints.'],
+    ['Vendor intelligence', '/vendor-intelligence', 'Compare vendors and manage quotation decisions.'],
+    ['Command centre', '/command-centre', 'Monitor wedding operations and service progress.'],
+    ['Disruption & recovery', '/disruption-engine', 'Track operational risks and recovery actions.'],
+  ],
 };
 
 export default function RoleDashboard({ role }: { role: AuthUser['role'] }) {
@@ -37,7 +43,8 @@ export default function RoleDashboard({ role }: { role: AuthUser['role'] }) {
         headers: token ? { Authorization: 'Bearer ' + token } : undefined,
       });
       if (!response.ok) return;
-      const requests = await response.json() as Array<{ status: string }>;
+      const payload = await response.json() as Array<{ status: string }> | { data?: Array<{ status: string }> };
+      const requests = Array.isArray(payload) ? payload : payload.data ?? [];
       setRequestCounts({
         total: requests.length,
         pending: requests.filter((item) => item.status === 'pending_approval').length,
@@ -57,13 +64,13 @@ export default function RoleDashboard({ role }: { role: AuthUser['role'] }) {
           <p className="text-sm text-[#766873] mt-2">Your workspace is restricted to the permissions for this role.</p>
           {role === 'admin' && <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             {[
-              ['Total requests', requestCounts.total],
-              ['Pending approvals', requestCounts.pending],
+              ['Total wedding plans', requestCounts.total],
+              ['Pending blueprint approvals', requestCounts.pending],
               ['Approved / blueprints', requestCounts.approved],
               ['Rejected', requestCounts.rejected],
             ].map(([label, value]) => <div key={String(label)} className="bg-white rounded-2xl border border-[#E8DCD0] p-5"><p className="text-xs uppercase tracking-wide text-[#766873]">{label}</p><p className="font-display text-3xl font-bold text-[#493044] mt-2">{value}</p></div>)}
           </section>}
-          <section className="grid md:grid-cols-3 gap-4 mt-8">{links[role].map(([title, href, description]) => <Link key={href} href={href} className="bg-white rounded-2xl border border-[#E8DCD0] p-5 hover:border-[#B99A65] transition"><h2 className="font-display text-2xl font-semibold text-[#493044]">{title}</h2><p className="text-sm text-[#766873] mt-2">{description}</p><span className="inline-block text-sm text-[#8A6B36] mt-4">Open →</span></Link>)}</section>
+          <section className="grid md:grid-cols-3 gap-4 mt-8">{links[role].map(([title, href, description]) => <Link key={title} href={href} className="bg-white rounded-2xl border border-[#E8DCD0] p-5 hover:border-[#B99A65] transition"><h2 className="font-display text-2xl font-semibold text-[#493044]">{title}</h2><p className="text-sm text-[#766873] mt-2">{description}</p><span className="inline-block text-sm text-[#8A6B36] mt-4">Open →</span></Link>)}</section>
         </main>
       </div>
     </div>

@@ -20,8 +20,16 @@ export default function AdminRequestsPage() {
       credentials: 'include',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
-    if (!response.ok) throw new Error('Unable to load wedding requests.');
-    setRequests(await response.json());
+    const payload = await response.json().catch(() => null) as WeddingRequest[] | { data?: WeddingRequest[]; message?: string } | null;
+    if (!response.ok) {
+      throw new Error(
+        (payload && !Array.isArray(payload) && payload.message)
+          || (response.status === 401 || response.status === 403
+            ? 'Your admin session is not authorized. Sign in again and reload this page.'
+            : 'Unable to load wedding requests.'),
+      );
+    }
+    setRequests(Array.isArray(payload) ? payload : payload?.data ?? []);
   };
 
   const uploadAgreement = async (item: WeddingRequest) => {
@@ -113,6 +121,14 @@ export default function AdminRequestsPage() {
                 </div>}
                 {item.status === 'approved' && <div className="mt-4 flex flex-wrap items-center gap-3">
                   <span className="text-sm text-emerald-700 font-medium">Blueprint generated for this customer</span>
+                  {item.approved_wedding_id && (
+                    <Link
+                      href={`/wedding-blueprint?weddingId=${item.approved_wedding_id}`}
+                      className="rounded-lg border border-[#493044] text-[#493044] px-4 py-2 text-sm font-semibold"
+                    >
+                      View blueprint
+                    </Link>
+                  )}
                   <button
                     onClick={() => void uploadAgreement(item)}
                     disabled={uploadingFor === item.id}
@@ -120,7 +136,14 @@ export default function AdminRequestsPage() {
                   >
                     {uploadingFor === item.id ? 'Uploading…' : 'Upload agreement (PDF/JPG)'}
                   </button>
-                  <Link href="/operations/agreements" className="text-sm text-[#8A6B36] underline">View agreements</Link>
+                  {item.agreement_id && (
+                    <Link
+                      href={`/operations/agreements?agreementId=${item.agreement_id}&weddingId=${item.approved_wedding_id ?? ''}`}
+                      className="text-sm text-[#8A6B36] underline"
+                    >
+                      View agreement & blueprint
+                    </Link>
+                  )}
                 </div>}
               </article>
             ))}

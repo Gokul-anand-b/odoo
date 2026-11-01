@@ -13,8 +13,8 @@ import {
   Brain,
   Radio,
   ShieldAlert,
-  Wallet,
   ClipboardList,
+  Wallet,
   Settings,
   FileText,
   CalendarDays,
@@ -24,7 +24,8 @@ import {
 import { authApi, AuthUser } from '@/features/client-management/services/authService';
 
 const navItems = [
-  { id: 'home', label: 'Overview', icon: LayoutDashboard, href: '/', roles: ['admin', 'customer'] },
+  { id: 'admin-home', label: 'Home', icon: LayoutDashboard, href: '/admin/dashboard', roles: ['admin'] },
+  { id: 'customer-home', label: 'Overview', icon: LayoutDashboard, href: '/', roles: ['customer'] },
   { id: 'blueprint', label: 'Wedding Blueprint', icon: BookOpen, href: '/wedding-blueprint', roles: ['customer'] },
   { id: 'blueprint-approvals', label: 'Blueprint Approvals', icon: BookOpen, href: '/admin/requests', roles: ['admin'] },
   { id: 'vendor-dashboard', label: 'Vendor Dashboard', icon: LayoutDashboard, href: '/vendor/dashboard', roles: ['vendor'] },
@@ -44,9 +45,6 @@ const navItems = [
   { id: 'vendor', label: 'Vendor Intelligence', icon: Brain, badge: 'AI', href: '/vendor-intelligence', roles: ['admin'] },
   { id: 'command', label: 'Command Centre', icon: Radio, href: '/command-centre', roles: ['admin'] },
   { id: 'disruption', label: 'Disruption & Recovery', icon: ShieldAlert, href: '/disruption-engine', roles: ['admin'] },
-  { id: 'finance', label: 'Financial & Guest', icon: Wallet, href: '/operations/finance', roles: ['admin', 'customer'] },
-  { id: 'admin-requests', label: 'All Wedding Requests', icon: ClipboardList, href: '/admin/requests', roles: ['admin'] },
-  { id: 'operations', label: 'Operations & Finance', icon: Wallet, href: '/operations', roles: ['admin', 'customer'] },
 ];
 
 export default function Sidebar() {

@@ -20,6 +20,7 @@ export type WeddingRequest = {
   approved_wedding_id?: string | null;
   agreement_id?: number | null;
   agreement_document?: string | null;
+  agreement_status?: 'draft' | 'sent' | 'signed' | 'declined' | null;
 };
 
 export type WeddingRequestInput = Omit<

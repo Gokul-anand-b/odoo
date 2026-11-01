@@ -17,6 +17,7 @@ class WeddingRequestSerializer(serializers.ModelSerializer):
     approved_wedding_id = serializers.UUIDField(source='approved_wedding.id', read_only=True, allow_null=True)
     agreement_id = serializers.SerializerMethodField()
     agreement_document = serializers.SerializerMethodField()
+    agreement_status = serializers.SerializerMethodField()
 
     def get_agreement_id(self, obj):
         agreement = obj.agreements.first()
@@ -28,13 +29,17 @@ class WeddingRequestSerializer(serializers.ModelSerializer):
             return None
         request = self.context.get('request')
         return request.build_absolute_uri(agreement.document.url) if request else agreement.document.url
+
+    def get_agreement_status(self, obj):
+        agreement = obj.agreements.first()
+        return agreement.status if agreement else None
     activities = RequestActivitySerializer(many=True, read_only=True)
 
     class Meta:
         model = WeddingRequest
         fields = [
             'id', 'customer', 'customer_name', 'approved_wedding_id', 'agreement_id',
-            'agreement_document', 'wedding_name', 'wedding_date',
+            'agreement_document', 'agreement_status', 'wedding_name', 'wedding_date',
             'location', 'guest_count', 'theme', 'budget', 'package',
             'requirements', 'status', 'decision_reason', 'decided_at',
             'resubmission_count', 'activities', 'created_at', 'updated_at',
